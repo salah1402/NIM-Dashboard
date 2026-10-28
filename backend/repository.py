@@ -1,17 +1,19 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from backend.models import Conversation, Message
+from backend.models import Conversation, Message, RoutingLog
+from backend.db import SessionLocal
 
 
 def create_conversation(session: Session, title: Optional[str] = None) -> Conversation:
+    now = datetime.now(timezone.utc)
     conv = Conversation(
         id=str(uuid.uuid4()),
         title=(title.strip() if title and title.strip() else "New chat"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=now,
+        updated_at=now,
     )
     session.add(conv)
     session.commit()
@@ -28,7 +30,6 @@ def list_conversations(session: Session) -> List[Conversation]:
 
 
 def list_conversations_with_count(session: Session) -> List[dict]:
-    # Query conversation with message counts
     results = (
         session.query(
             Conversation,
@@ -71,6 +72,7 @@ def add_message(
     content: str,
     model_slug: Optional[str] = None,
     latency_ms: Optional[float] = None,
+    fallback_count: Optional[int] = 0,
 ) -> Message:
     latency_int = int(round(latency_ms)) if latency_ms is not None else None
     msg = Message(
@@ -80,7 +82,8 @@ def add_message(
         content=content,
         model_slug=model_slug,
         latency_ms=latency_int,
-        created_at=datetime.utcnow(),
+        fallback_count=fallback_count or 0,
+        created_at=datetime.now(timezone.utc),
     )
     session.add(msg)
     session.commit()
@@ -91,7 +94,7 @@ def add_message(
 def touch_conversation(session: Session, conversation_id: str) -> Optional[Conversation]:
     conv = get_conversation(session, conversation_id)
     if conv:
-        conv.updated_at = datetime.utcnow()
+        conv.updated_at = datetime.now(timezone.utc)
         session.commit()
         session.refresh(conv)
     return conv
@@ -123,7 +126,63 @@ def reconcile_interrupted_conversations(session: Session) -> int:
                 content="⚠️ Response failed: Server interrupted during generation",
                 model_slug="meta/llama-3.1-8b-instruct",
                 latency_ms=None,
+                fallback_count=0,
             )
             touch_conversation(session, conv.id)
             reconciled_count += 1
     return reconciled_count
+
+
+def log_routing_attempt(
+    model_slug: str,
+    tier: str,
+    status: str,
+    attempt_num: int,
+    conversation_id: Optional[str] = None,
+    message_id: Optional[str] = None,
+    error: Optional[str] = None,
+    latency_ms: Optional[int] = None,
+    session: Optional[Session] = None,
+    session_factory=None,
+) -> RoutingLog:
+    """Logs a single cascade attempt in routing_logs using a dedicated or short-lived session."""
+    log_id = str(uuid.uuid4())
+    log_entry = RoutingLog(
+        id=log_id,
+        message_id=message_id,
+        conversation_id=conversation_id,
+        model_slug=model_slug,
+        tier=tier,
+        status=status,
+        error=error,
+        latency_ms=latency_ms,
+        attempt_num=attempt_num,
+        created_at=datetime.now(timezone.utc),
+    )
+
+    if session is not None:
+        session.add(log_entry)
+        session.commit()
+        session.refresh(log_entry)
+        return log_entry
+
+    factory = session_factory or SessionLocal
+    with factory() as s:
+        s.add(log_entry)
+        s.commit()
+        s.refresh(log_entry)
+        return log_entry
+
+
+def link_routing_logs_to_message(
+    session: Session,
+    log_ids: List[str],
+    message_id: str,
+) -> None:
+    """Updates routing_logs rows to associate them with the persisted message_id."""
+    if not log_ids:
+        return
+    session.query(RoutingLog).filter(RoutingLog.id.in_(log_ids)).update(
+        {"message_id": message_id}, synchronize_session=False
+    )
+    session.commit()

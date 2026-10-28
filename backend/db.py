@@ -1,5 +1,5 @@
 from pathlib import Path
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 from backend.models import Base
 
@@ -26,9 +26,18 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def init_db():
+def init_db(target_engine=None):
+    use_engine = target_engine or engine
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=use_engine)
+
+    # Ensure fallback_count exists in messages table if table was created in Phase 1
+    with use_engine.connect() as conn:
+        result = conn.execute(text("PRAGMA table_info(messages)"))
+        columns = [row[1] for row in result.fetchall()]
+        if columns and "fallback_count" not in columns:
+            conn.execute(text("ALTER TABLE messages ADD COLUMN fallback_count INTEGER DEFAULT 0"))
+            conn.commit()
 
 
 def get_db():

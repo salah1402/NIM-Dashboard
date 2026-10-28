@@ -1,15 +1,20 @@
+import asyncio
 import json
 from contextlib import asynccontextmanager
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from backend.db import init_db, get_db, SessionLocal
+from backend.models import Conversation, Message
 from backend.provider import MockProvider
+from backend.circuit_breaker import CircuitBreaker
 from backend.router import FallbackRouter
+from backend.errors import AllModelsFailed
+from backend.config import models_config
 from backend import repository
 
 
@@ -34,8 +39,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize breaker, provider, and router
+breaker_cfg = models_config.get("circuit_breaker", {})
+breaker = CircuitBreaker(
+    failure_threshold=breaker_cfg.get("failure_threshold", 3),
+    window_seconds=breaker_cfg.get("window_seconds", 60),
+    cooldown_seconds=breaker_cfg.get("cooldown_seconds", 300),
+    half_open_after=breaker_cfg.get("half_open_after", 300),
+)
 mock_provider = MockProvider()
-router = FallbackRouter()
+router = FallbackRouter(
+    provider=mock_provider,
+    breaker=breaker,
+    tiers={
+        "tier1": models_config.get("tier1", []),
+        "tier2": models_config.get("tier2", []),
+        "tier3": models_config.get("tier3", []),
+    },
+    exclude=set(models_config.get("exclude", [])),
+)
 
 
 # --- Pydantic Schemas ---
@@ -51,16 +73,16 @@ class ChatRequest(BaseModel):
 
 
 class MessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     conversation_id: str
     role: str
     content: str
     model_slug: Optional[str] = None
     latency_ms: Optional[int] = None
+    fallback_count: Optional[int] = 0
     created_at: str
-
-    class Config:
-        from_attributes = True
 
 
 class ConversationOut(BaseModel):
@@ -76,6 +98,17 @@ class ConversationOut(BaseModel):
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "nim-dashboard-api"}
+
+
+@app.get("/api/router/state")
+def get_router_state():
+    """Exposes circuit breaker state for all known model slugs for inspection."""
+    all_slugs = []
+    for tier in ("tier1", "tier2", "tier3"):
+        for slug in router.tiers.get(tier, []):
+            if slug not in all_slugs:
+                all_slugs.append(slug)
+    return {slug: router.breaker.state(slug) for slug in all_slugs}
 
 
 @app.post("/api/conversations", response_model=ConversationOut)
@@ -110,6 +143,7 @@ def get_conversation_messages_endpoint(conversation_id: str, db: Session = Depen
             content=m.content,
             model_slug=m.model_slug,
             latency_ms=m.latency_ms,
+            fallback_count=getattr(m, "fallback_count", 0) or 0,
             created_at=m.created_at.isoformat() if m.created_at else "",
         )
         for m in messages
@@ -157,71 +191,90 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
         content=user_message,
         model_slug=None,
         latency_ms=None,
+        fallback_count=0,
     )
     repository.touch_conversation(db, conversation_id)
 
-    # Prepare candidate model
-    attempted_slug = router.select_model(force_model=request.force_model)
-
-    # Step d-h: Stream reply and persist assistant response
+    # Step d-h: Stream reply and persist assistant response via router
     async def event_generator():
-        accumulated_text = ""
-        final_model_slug = attempted_slug
-        final_latency = 0.0
-        success = False
-
-        # Open dedicated session for the generator lifespan
         with SessionLocal() as stream_db:
             try:
                 # Fetch full history for model context
                 current_msgs = repository.list_messages(stream_db, conversation_id)
                 msg_history = [{"role": m.role, "content": m.content} for m in current_msgs]
 
-                async for chunk in mock_provider.stream_chat(msg_history, model=request.force_model):
-                    if not chunk.get("done"):
-                        token = chunk.get("token", "")
-                        accumulated_text += token
-                        yield f"data: {json.dumps({'token': token, 'done': False})}\n\n"
-                    else:
-                        final_model_slug = chunk.get("model_slug", attempted_slug)
-                        final_latency = chunk.get("latency_ms", 0.0)
+                # Run cascade routing
+                outcome = router.route(
+                    messages=msg_history,
+                    conversation_id=conversation_id,
+                    force_model=request.force_model,
+                )
 
-                success = True
-
-                # Step e: Persist successful assistant message
-                repository.add_message(
+                # Persist successful assistant message
+                assistant_msg = repository.add_message(
                     session=stream_db,
                     conversation_id=conversation_id,
                     role="assistant",
-                    content=accumulated_text,
-                    model_slug=final_model_slug,
-                    latency_ms=final_latency,
+                    content=outcome.content,
+                    model_slug=outcome.model_slug,
+                    latency_ms=outcome.latency_ms,
+                    fallback_count=outcome.fallback_count,
                 )
-                # Step g: touch_conversation
                 repository.touch_conversation(stream_db, conversation_id)
 
-                # Step h: Final SSE chunk with conversation_id
-                yield f"data: {json.dumps({'token': '', 'done': True, 'model_slug': final_model_slug, 'latency_ms': final_latency, 'conversation_id': conversation_id})}\n\n"
+                # Link routing logs to this message
+                log_ids = [a.log_id for a in outcome.attempts if a.log_id]
+                repository.link_routing_logs_to_message(stream_db, log_ids, assistant_msg.id)
+
+                # Stream tokens
+                words = outcome.content.split(" ")
+                for i, word in enumerate(words):
+                    piece = word + (" " if i < len(words) - 1 else "")
+                    yield f"data: {json.dumps({'token': piece, 'done': False})}\n\n"
+                    await asyncio.sleep(0.01)
+
+                # Final SSE chunk includes conversation_id and fallback_count
+                yield f"data: {json.dumps({'token': '', 'done': True, 'model_slug': outcome.model_slug, 'latency_ms': outcome.latency_ms, 'conversation_id': conversation_id, 'fallback_count': outcome.fallback_count})}\n\n"
+
+            except AllModelsFailed as exc:
+                err_placeholder = "⚠️ Response failed: All candidate models failed"
+                first_slug = exc.attempts[0].model_slug if exc.attempts else None
+                try:
+                    assistant_msg = repository.add_message(
+                        session=stream_db,
+                        conversation_id=conversation_id,
+                        role="assistant",
+                        content=err_placeholder,
+                        model_slug=first_slug,
+                        latency_ms=None,
+                        fallback_count=len(exc.attempts),
+                    )
+                    repository.touch_conversation(stream_db, conversation_id)
+                    log_ids = [a.log_id for a in exc.attempts if a.log_id]
+                    repository.link_routing_logs_to_message(stream_db, log_ids, assistant_msg.id)
+
+                    attempts_data = [a.to_dict() for a in exc.attempts]
+                    yield f"data: {json.dumps({'error': 'all_models_failed', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'attempts': attempts_data, 'conversation_id': conversation_id, 'fallback_count': len(exc.attempts)})}\n\n"
+                except Exception as persist_err:
+                    print(f"Error persisting all-models-failed placeholder: {persist_err}")
 
             except BaseException as exc:
-                # Step f: On stream error mid-flight, persist failure placeholder without silent swallowing
-                if not success:
-                    reason = str(exc) if str(exc).strip() else exc.__class__.__name__
-                    err_placeholder = f"⚠️ Response failed: {reason}"
-                    try:
-                        repository.add_message(
-                            session=stream_db,
-                            conversation_id=conversation_id,
-                            role="assistant",
-                            content=err_placeholder,
-                            model_slug=attempted_slug,
-                            latency_ms=None,
-                        )
-                        repository.touch_conversation(stream_db, conversation_id)
-                        yield f"data: {json.dumps({'token': f'\n\n{err_placeholder}', 'done': True, 'model_slug': attempted_slug, 'latency_ms': None, 'conversation_id': conversation_id})}\n\n"
-                    except Exception as persist_err:
-                        # Log if database write fails during error handling
-                        print(f"Error persisting failure placeholder: {persist_err}")
+                reason = str(exc) if str(exc).strip() else exc.__class__.__name__
+                err_placeholder = f"⚠️ Response failed: {reason}"
+                try:
+                    repository.add_message(
+                        session=stream_db,
+                        conversation_id=conversation_id,
+                        role="assistant",
+                        content=err_placeholder,
+                        model_slug=None,
+                        latency_ms=None,
+                        fallback_count=0,
+                    )
+                    repository.touch_conversation(stream_db, conversation_id)
+                    yield f"data: {json.dumps({'error': 'server_error', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
+                except Exception as persist_err:
+                    print(f"Error persisting failure placeholder: {persist_err}")
                 raise
 
     return StreamingResponse(

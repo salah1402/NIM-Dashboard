@@ -1,55 +1,93 @@
-import asyncio
-import random
-import time
-from typing import AsyncGenerator, Dict, Any, List, Optional
-from backend.config import models_config
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Any
+from backend.errors import (
+    RouterError,
+    RateLimitedError,
+    DeadModelError,
+    ServerError,
+    TimeoutError,
+    ConnectionError,
+)
 
 
-class MockProvider:
-    """Mock LLM provider returning simulated streamed tokens."""
+@dataclass
+class ProviderResult:
+    content: str
+    model_slug: str
+    latency_ms: int
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = config or models_config
 
-    async def stream_chat(
-        self,
-        messages: List[Dict[str, str]],
-        model: Optional[str] = None,
-    ) -> AsyncGenerator[Dict[str, Any], None]:
-        tier1_models = self.config.get("tier1", [
-            "meta/llama-4-maverick-17b-128e-instruct",
-            "meta/llama-3.1-8b-instruct",
-            "openai/gpt-oss-20b",
-            "nvidia/nvidia-nemotron-nano-9b-v2",
-        ])
-        selected_model = model or random.choice(tier1_models)
+class LLMProvider(ABC):
+    """Abstract base class for LLM completion providers."""
 
-        user_msg = messages[-1].get("content", "") if messages else ""
-        canned_text = (
-            f"Hello! This is a mock response from {selected_model}. "
-            f"Received: \"{user_msg}\". "
-            "NIM Dashboard cascades requests across multiple model slugs to maximize throughput. "
-            "Mock streaming is working properly!"
+    @abstractmethod
+    def complete(self, messages: List[Dict[str, Any]], model_slug: str) -> ProviderResult:
+        """Execute chat completion for the given messages and model slug.
+
+        Raises RouterError subclasses on failure.
+        """
+        pass
+
+
+class MockProvider(LLMProvider):
+    """Deterministic mock provider that raises failures according to fail_plan
+
+    or returns a canned success response once the plan for a slug is exhausted.
+    """
+
+    def __init__(self, fail_plan: Optional[Dict[str, List[str]]] = None):
+        self.fail_plan: Dict[str, List[str]] = (
+            {k: list(v) for k, v in fail_plan.items()} if fail_plan else {}
         )
-        tokens = canned_text.split(" ")
-        start_time = time.time()
+        self.calls: List[Dict[str, Any]] = []
 
-        # Spread ~1s total streaming delay across tokens
-        delay_per_token = 1.0 / max(len(tokens), 1)
+    def set_fail_plan(self, fail_plan: Dict[str, List[str]]) -> None:
+        self.fail_plan = {k: list(v) for k, v in fail_plan.items()}
 
-        for i, token in enumerate(tokens):
-            await asyncio.sleep(delay_per_token)
-            yield {
-                "token": token + (" " if i < len(tokens) - 1 else ""),
-                "done": False,
-            }
+    def complete(self, messages: List[Dict[str, Any]], model_slug: str) -> ProviderResult:
+        self.calls.append({"model_slug": model_slug, "messages": messages})
 
-        elapsed_ms = round((time.time() - start_time) * 1000, 2)
+        # Check if there is an active failure plan for this slug
+        if model_slug in self.fail_plan and self.fail_plan[model_slug]:
+            failure_mode = self.fail_plan[model_slug].pop(0)
 
-        # Final chunk includes model_slug and latency
-        yield {
-            "token": "",
-            "done": True,
-            "model_slug": selected_model,
-            "latency_ms": elapsed_ms,
-        }
+            if isinstance(failure_mode, Exception):
+                raise failure_mode
+            elif isinstance(failure_mode, type) and issubclass(failure_mode, Exception):
+                raise failure_mode(f"Simulated failure {failure_mode.__name__} for {model_slug}")
+
+            failure_str = str(failure_mode).lower().strip()
+            if failure_str == "rate_limited":
+                raise RateLimitedError(f"HTTP 429: Rate limit exceeded for {model_slug}")
+            elif failure_str == "dead_model":
+                raise DeadModelError(f"HTTP 404: Model slug '{model_slug}' not found")
+            elif failure_str == "server_error":
+                raise ServerError(f"HTTP 500: Server error from {model_slug}")
+            elif failure_str == "timeout":
+                raise TimeoutError(f"Timeout: Request timed out for {model_slug}")
+            elif failure_str == "connection_error":
+                raise ConnectionError(f"Connection error connecting to {model_slug}")
+            elif failure_str == "value_error":
+                raise ValueError(f"Simulated unexpected ValueError for {model_slug}")
+            else:
+                raise RouterError(f"Failure mode '{failure_mode}' for {model_slug}")
+
+        # Once plan is exhausted or if no plan, succeed immediately with canned reply
+        last_user = ""
+        for m in reversed(messages):
+            if isinstance(m, dict) and m.get("role") == "user":
+                last_user = m.get("content", "")
+                break
+
+        canned = (
+            f"Hello! This is a mock response from {model_slug}. "
+            f"Received: \"{last_user}\". "
+            "Cascade routing succeeded."
+        ) if last_user else f"Mock response from {model_slug}. Cascade routing succeeded."
+
+        return ProviderResult(
+            content=canned,
+            model_slug=model_slug,
+            latency_ms=10,
+        )

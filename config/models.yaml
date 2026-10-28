@@ -13,3 +13,8 @@ tier3:
 exclude:
   - qwen/qwen3-235b-a22b
   - deepseek-ai/deepseek-r1
+circuit_breaker:
+  failure_threshold: 3
+  window_seconds: 60
+  cooldown_seconds: 300
+  half_open_after: 300
