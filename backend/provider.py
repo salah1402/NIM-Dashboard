@@ -49,7 +49,7 @@ class RealProvider(LLMProvider):
         self,
         api_key: str,
         base_url: str,
-        timeout_s: int = 8,
+        timeout_s: int = 5,
         client: Optional[openai.OpenAI] = None,
     ):
         self.api_key = api_key

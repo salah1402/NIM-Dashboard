@@ -25,9 +25,21 @@ def test_chat_integration_cascade_fallback(temp_db):
 
     # Wire temp session factory into router and main.py
     import backend.main
+    from backend.provider import MockProvider
+
     orig_session_local = backend.main.SessionLocal
     orig_router_factory = router.session_factory
-    orig_fail_plan = dict(mock_provider.fail_plan)
+    orig_provider = router.provider
+    orig_mock_provider = backend.main.mock_provider
+
+    if backend.main.mock_provider is None:
+        active_mock = MockProvider()
+        backend.main.mock_provider = active_mock
+        router.provider = active_mock
+    else:
+        active_mock = backend.main.mock_provider
+
+    orig_fail_plan = dict(active_mock.fail_plan)
 
     backend.main.SessionLocal = session_factory
     router.session_factory = session_factory
@@ -36,7 +48,7 @@ def test_chat_integration_cascade_fallback(temp_db):
     tier1_second_slug = router.tiers["tier1"][1]
 
     # Wire fail plan: first slug fails once with 429
-    mock_provider.set_fail_plan({
+    active_mock.set_fail_plan({
         tier1_first_slug: ["rate_limited"],
     })
 
@@ -104,7 +116,10 @@ def test_chat_integration_cascade_fallback(temp_db):
         app.dependency_overrides.clear()
         backend.main.SessionLocal = orig_session_local
         router.session_factory = orig_router_factory
-        mock_provider.set_fail_plan(orig_fail_plan)
+        router.provider = orig_provider
+        backend.main.mock_provider = orig_mock_provider
+        if orig_mock_provider is not None:
+            orig_mock_provider.set_fail_plan(orig_fail_plan)
 
 
 def test_router_state_endpoint(temp_db):

@@ -1,18 +1,17 @@
 tier1:
-  - deepseek-ai/deepseek-v4.1-flash
-  - z-ai/glm-5.3-flash
+  - meta/llama-3.2-3b-instruct
+  - mistralai/mistral-7b-instruct-v0.3
   - nvidia/nemotron-3.5-super-vl-120b-a12b
 
 tier2:
   - moonshotai/kimi-k2.6
-  - stepfun-ai/step-5-preview
-  - 01-ai/yi-large
   - openai/gpt-oss-20b
+  - 01-ai/yi-large
 
 tier3:
   - nvidia/nemotron-3-ultra-550b-a55b
   - minimaxai/minimax-m3.1-flash
-  - nvidia/nemotron-4-340b-instruct
+  - deepseek-ai/deepseek-v4.1-flash
 
 exclude:
   - qwen/qwen3-235b-a22b
