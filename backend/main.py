@@ -356,7 +356,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                     repository.link_routing_logs_to_message(stream_db, log_ids, assistant_msg.id)
 
                     attempts_meta = [{"slug": a.model_slug, "status": a.status} for a in exc.attempts]
-                    yield f"data: {json.dumps({'event': 'error', 'error': 'all_models_failed', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'attempts': attempts_meta, 'conversation_id': conversation_id, 'fallback_count': len(exc.attempts)})}\n\n"
+                    yield f"data: {json.dumps({'event': 'error', 'error': 'all_models_failed', 'token': f'{err_placeholder}', 'done': True, 'attempts': attempts_meta, 'conversation_id': conversation_id, 'fallback_count': len(exc.attempts)})}\n\n"
                 except Exception as persist_err:
                     print(f"Error persisting all-models-failed placeholder: {persist_err}")
 
@@ -373,7 +373,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                         fallback_count=0,
                     )
                     repository.touch_conversation(stream_db, conversation_id)
-                    yield f"data: {json.dumps({'event': 'error', 'error': 'auth_error', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
+                    yield f"data: {json.dumps({'event': 'error', 'error': 'auth_error', 'token': f'{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
                 except Exception as persist_err:
                     print(f"Error persisting auth error placeholder: {persist_err}")
 
@@ -391,7 +391,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                         fallback_count=0,
                     )
                     repository.touch_conversation(stream_db, conversation_id)
-                    yield f"data: {json.dumps({'event': 'error', 'error': 'server_error', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
+                    yield f"data: {json.dumps({'event': 'error', 'error': 'server_error', 'token': f'{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
                 except Exception as persist_err:
                     print(f"Error persisting failure placeholder: {persist_err}")
                 raise

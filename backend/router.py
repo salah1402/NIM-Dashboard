@@ -49,6 +49,13 @@ class RoutingOutcome:
     fallback_count: int
 
 
+TIER_TIMEOUTS = {
+    "tier1": 5,
+    "tier2": 12,
+    "tier3": 30,
+}
+
+
 def _map_exception_to_status(exc: Exception) -> str:
     if isinstance(exc, RateLimitedError):
         return "rate_limited"
@@ -140,7 +147,6 @@ class FallbackRouter:
 
         candidates = self.get_candidate_models(force_model=force_model, tier_order=tier_order)
         attempts: List[AttemptLog] = []
-        effective_timeout = timeout_s if timeout_s is not None else self.timeout_s
 
         for attempt_idx, (slug, tier) in enumerate(candidates, start=1):
             # 2a. Circuit breaker check
@@ -169,10 +175,13 @@ class FallbackRouter:
                 )
                 continue
 
+            # Tier-based timeout: Tier 1 = 5s, Tier 2 = 12s, Tier 3 = 30s
+            candidate_timeout = timeout_s if timeout_s is not None else TIER_TIMEOUTS.get(tier, 12)
+
             # 2b. Attempt completion with wall-clock guard
             t0 = time.perf_counter()
             try:
-                result = self.provider.complete(messages, model_slug=slug, timeout_s=effective_timeout)
+                result = self.provider.complete(messages, model_slug=slug, timeout_s=candidate_timeout)
                 elapsed_ms = int((time.perf_counter() - t0) * 1000)
                 latency = result.latency_ms if result.latency_ms is not None else elapsed_ms
 

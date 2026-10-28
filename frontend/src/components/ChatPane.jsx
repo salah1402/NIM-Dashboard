@@ -1,4 +1,15 @@
 import React, { useRef, useEffect } from 'react';
+import { AlertTriangle } from 'lucide-react';
+
+const cleanContent = (content) => {
+  if (!content) return '';
+  return content
+    .replace(/^(\\n)+/g, '')
+    .replace(/^[\r\n]+/, '')
+    .replace(/(\\n)+$/g, '')
+    .replace(/[\r\n]+$/, '')
+    .trim();
+};
 
 export default function ChatPane({
   conversation,
@@ -65,7 +76,21 @@ export default function ChatPane({
         ) : (
           messages.map((msg) => {
             const isUser = msg.role === 'user';
-            const isFailed = msg.content?.startsWith('⚠️');
+            const cleaned = cleanContent(msg.content);
+            const isFailed =
+              msg.model_slug === 'error' ||
+              cleaned.startsWith('⚠️') ||
+              cleaned.toLowerCase().includes('all candidate models failed') ||
+              cleaned.toLowerCase().includes('response failed:');
+
+            const errorText = isFailed
+              ? cleaned
+                  .replace(/^⚠️\s*/, '')
+                  .replace(/^\[⚠️\s*/, '')
+                  .replace(/\]$/, '')
+                  .replace(/^Response failed:\s*/i, '')
+                  .trim()
+              : cleaned;
 
             return (
               <div
@@ -77,9 +102,17 @@ export default function ChatPane({
                     {isUser ? 'You' : 'NIM Assistant'}
                   </span>
                   {msg.model_slug && (
-                    <span className="inline-flex items-center text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">
+                    <span
+                      className={`inline-flex items-center text-[11px] font-mono px-2 py-0.5 rounded-md font-medium border ${
+                        isFailed
+                          ? 'bg-rose-50 border-rose-200 text-rose-700'
+                          : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                      }`}
+                    >
                       <svg
-                        className="w-3 h-3 mr-1 text-emerald-600 inline"
+                        className={`w-3 h-3 mr-1 inline ${
+                          isFailed ? 'text-rose-600' : 'text-emerald-600'
+                        }`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -101,29 +134,43 @@ export default function ChatPane({
                   )}
                 </div>
 
-                <div
-                  className={`max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words ${
-                    isUser
-                      ? 'bg-slate-900 text-white rounded-br-none'
-                      : isFailed
-                      ? 'bg-rose-50 border border-rose-200 text-rose-800 rounded-bl-none'
-                      : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
-                  }`}
-                >
-                  {msg.content || (
-                    <div className="flex items-center space-x-1 py-1 text-slate-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"></span>
-                      <span
-                        className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
-                        style={{ animationDelay: '0.2s' }}
-                      ></span>
-                      <span
-                        className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
-                        style={{ animationDelay: '0.4s' }}
-                      ></span>
+                {isFailed ? (
+                  <div className="max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm bg-rose-50 border border-rose-200 text-rose-900 rounded-bl-none flex items-start space-x-3">
+                    <div className="p-1 rounded-md bg-rose-100 text-rose-600 shrink-0 mt-0.5">
+                      <AlertTriangle className="w-4 h-4" />
                     </div>
-                  )}
-                </div>
+                    <div className="flex-1 space-y-0.5">
+                      <div className="font-semibold text-rose-800 text-xs uppercase tracking-wider">
+                        Request Failed
+                      </div>
+                      <div className="text-rose-700 text-xs font-normal">
+                        {errorText || 'All candidate models failed in cascade.'}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className={`max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words ${
+                      isUser
+                        ? 'bg-slate-900 text-white rounded-br-none'
+                        : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
+                    }`}
+                  >
+                    {cleaned || (
+                      <div className="flex items-center space-x-1 py-1 text-slate-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"></span>
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
+                          style={{ animationDelay: '0.2s' }}
+                        ></span>
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
+                          style={{ animationDelay: '0.4s' }}
+                        ></span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })
@@ -157,7 +204,7 @@ export default function ChatPane({
             </select>
           </div>
           <span className="text-[11px] text-slate-500 hidden sm:inline">
-            8s per-slug timeout cascade
+            Tiered timeout cascade (5s / 12s / 30s)
           </span>
         </div>
         <form

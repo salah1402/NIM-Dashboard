@@ -49,7 +49,7 @@ class RealProvider(LLMProvider):
         self,
         api_key: str,
         base_url: str,
-        timeout_s: int = 5,
+        timeout_s: Optional[int] = None,
         client: Optional[openai.OpenAI] = None,
     ):
         self.api_key = api_key
@@ -59,7 +59,7 @@ class RealProvider(LLMProvider):
             base_url=self.base_url,
             api_key=self.api_key,
             max_retries=0,  # CRITICAL: router owns retries, not the SDK
-            timeout=self.timeout_s,
+            timeout=self.timeout_s or 30.0,
         )
 
     def complete(
@@ -69,7 +69,7 @@ class RealProvider(LLMProvider):
         timeout_s: Optional[int] = None,
     ) -> ProviderResult:
         t0 = time.perf_counter()
-        effective_timeout = timeout_s if timeout_s is not None else self.timeout_s
+        effective_timeout = timeout_s if timeout_s is not None else (self.timeout_s or 30)
         try:
             resp = self.client.chat.completions.create(
                 model=model_slug,
