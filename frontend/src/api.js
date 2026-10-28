@@ -1,19 +1,59 @@
 // NIM Dashboard API Client
-// Points directly at http://localhost:8000 (also proxied via Vite at :5173)
 export const API_BASE_URL = 'http://localhost:8000';
+
+export async function checkHealth() {
+  const response = await fetch(`${API_BASE_URL}/health`);
+  if (!response.ok) {
+    throw new Error(`Health check failed with status ${response.status}`);
+  }
+  return await response.json();
+}
+
+export async function fetchConversations() {
+  const response = await fetch(`${API_BASE_URL}/api/conversations`);
+  if (!response.ok) {
+    throw new Error(`Failed to load conversations: ${response.statusText}`);
+  }
+  return await response.json();
+}
+
+export async function fetchMessages(conversationId) {
+  const response = await fetch(`${API_BASE_URL}/api/conversations/${conversationId}/messages`);
+  if (!response.ok) {
+    throw new Error(`Failed to load messages: ${response.statusText}`);
+  }
+  return await response.json();
+}
+
+export async function createConversation(title = 'New chat') {
+  const response = await fetch(`${API_BASE_URL}/api/conversations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to create conversation: ${response.statusText}`);
+  }
+  return await response.json();
+}
+
+export async function deleteConversation(conversationId) {
+  const response = await fetch(`${API_BASE_URL}/api/conversations/${conversationId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to delete conversation: ${response.statusText}`);
+  }
+  return await response.json();
+}
 
 /**
  * Sends a message and processes the streamed SSE response.
- * @param {Object} options
- * @param {string} [options.conversationId]
- * @param {string} options.message
- * @param {function(string): void} options.onToken
- * @param {function(Object): void} options.onComplete
- * @param {function(Error): void} options.onError
  */
 export async function sendChatMessage({
   conversationId,
   message,
+  forceModel,
   onToken,
   onComplete,
   onError,
@@ -25,8 +65,9 @@ export async function sendChatMessage({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        conversation_id: conversationId,
+        conversation_id: conversationId || undefined,
         message,
+        force_model: forceModel || undefined,
       }),
     });
 
@@ -36,7 +77,7 @@ export async function sendChatMessage({
     }
 
     if (!response.body) {
-      throw new Error('Response body is null or streaming not supported');
+      throw new Error('Streaming not supported on this connection');
     }
 
     const reader = response.body.getReader();
@@ -77,12 +118,4 @@ export async function sendChatMessage({
       console.error('Failed to send chat message:', error);
     }
   }
-}
-
-export async function checkHealth() {
-  const response = await fetch(`${API_BASE_URL}/health`);
-  if (!response.ok) {
-    throw new Error(`Health check failed with status ${response.status}`);
-  }
-  return await response.json();
 }

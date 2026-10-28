@@ -11,14 +11,18 @@ class MockProvider:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or models_config
 
-    async def stream_chat(self, messages: List[Dict[str, str]]) -> AsyncGenerator[Dict[str, Any], None]:
+    async def stream_chat(
+        self,
+        messages: List[Dict[str, str]],
+        model: Optional[str] = None,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         tier1_models = self.config.get("tier1", [
             "meta/llama-4-maverick-17b-128e-instruct",
             "meta/llama-3.1-8b-instruct",
             "openai/gpt-oss-20b",
             "nvidia/nvidia-nemotron-nano-9b-v2",
         ])
-        selected_model = random.choice(tier1_models)
+        selected_model = model or random.choice(tier1_models)
 
         user_msg = messages[-1].get("content", "") if messages else ""
         canned_text = (

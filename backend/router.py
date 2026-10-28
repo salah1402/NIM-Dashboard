@@ -4,7 +4,7 @@ from backend.config import models_config
 
 class FallbackRouter:
     """Fallback router stub that manages candidate model slugs across tiers.
-    In Phase 0, this provides stub iteration over mock slugs.
+    In Phase 0 and Phase 1, this provides stub iteration over mock slugs.
     """
 
     def __init__(self, config: Optional[dict] = None):
@@ -28,3 +28,8 @@ class FallbackRouter:
             return tier1[0]
         candidates = self.get_candidate_models()
         return candidates[0] if candidates else "meta/llama-3.1-8b-instruct"
+
+    def select_model(self, force_model: Optional[str] = None) -> str:
+        if force_model:
+            return force_model
+        return self.get_next_model()
