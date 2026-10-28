@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatPane from './components/ChatPane';
+import DashboardView from './components/DashboardView';
 import {
   fetchConversations,
   fetchMessages,
@@ -11,6 +12,7 @@ import {
 } from './api';
 
 export default function App() {
+  const [view, setView] = useState('chat'); // 'chat' | 'dashboard'
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -224,11 +226,37 @@ export default function App() {
             <div className="flex items-center space-x-2">
               <h1 className="text-base font-semibold tracking-wide text-white">NIM Dashboard</h1>
               <span className="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium">
-                Phase 1 DB
+                Phase 5
               </span>
             </div>
             <p className="text-xs text-slate-400">Self-hosted NVIDIA NIM Multi-Slug Cascade Router</p>
           </div>
+        </div>
+
+        {/* View Switcher Toggle */}
+        <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+          <button
+            type="button"
+            onClick={() => setView('chat')}
+            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              view === 'chat'
+                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+            }`}
+          >
+            <span>💬 Chat</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('dashboard')}
+            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              view === 'dashboard'
+                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+            }`}
+          >
+            <span>📊 Dashboard</span>
+          </button>
         </div>
 
         <div className="flex items-center space-x-4 text-xs font-mono">
@@ -251,8 +279,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Container: Sidebar + ChatPane */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Main Container: Chat vs Dashboard with state preserved */}
+      <div className={view === 'chat' ? 'flex flex-1 overflow-hidden' : 'hidden'}>
         <Sidebar
           conversations={conversations}
           activeId={activeId}
@@ -272,6 +300,10 @@ export default function App() {
           isSaving={isSaving}
           onSendMessage={handleSendMessage}
         />
+      </div>
+
+      <div className={view === 'dashboard' ? 'flex flex-1 overflow-hidden' : 'hidden'}>
+        <DashboardView />
       </div>
     </div>
   );

@@ -121,3 +121,20 @@ export async function sendChatMessage({
     }
   }
 }
+
+export async function fetchDashboardStats() {
+  const response = await fetch(`${API_BASE_URL}/api/dashboard/stats`);
+  if (!response.ok) {
+    throw new Error(`Failed to load dashboard stats: ${response.statusText}`);
+  }
+  return await response.json();
+}
+
+export async function fetchDashboardLogs(limit = 50) {
+  const response = await fetch(`${API_BASE_URL}/api/dashboard/logs?limit=${limit}`);
+  if (!response.ok) {
+    throw new Error(`Failed to load dashboard logs: ${response.statusText}`);
+  }
+  return await response.json();
+}
+

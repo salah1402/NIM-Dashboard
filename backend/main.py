@@ -405,3 +405,14 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@app.get("/api/dashboard/stats")
+def get_dashboard_stats_endpoint(db: Session = Depends(get_db)):
+    return repository.get_dashboard_stats(db)
+
+
+@app.get("/api/dashboard/logs")
+def get_dashboard_logs_endpoint(limit: int = 50, db: Session = Depends(get_db)):
+    return repository.get_dashboard_logs(db, limit=limit)
+

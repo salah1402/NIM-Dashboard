@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, case
 from backend.models import Conversation, Message, RoutingLog
 from backend.db import SessionLocal
 
@@ -186,3 +186,120 @@ def link_routing_logs_to_message(
         {"message_id": message_id}, synchronize_session=False
     )
     session.commit()
+
+
+def get_dashboard_stats(session: Session) -> dict:
+    """Calculates aggregated performance and routing metrics."""
+    total_requests = session.query(func.count(RoutingLog.id)).scalar() or 0
+
+    success_count = (
+        session.query(func.count(RoutingLog.id))
+        .filter(RoutingLog.status == "success")
+        .scalar()
+        or 0
+    )
+    success_rate = (
+        round((success_count / total_requests) * 100, 1) if total_requests > 0 else 0.0
+    )
+
+    avg_latency = (
+        session.query(func.avg(RoutingLog.latency_ms))
+        .filter(RoutingLog.status == "success", RoutingLog.latency_ms.isnot(None))
+        .scalar()
+    )
+    avg_latency_ms = round(float(avg_latency), 1) if avg_latency is not None else 0.0
+
+    total_fallbacks = (
+        session.query(func.count(Message.id))
+        .filter(Message.fallback_count > 0)
+        .scalar()
+        or 0
+    )
+
+    # Per-model performance breakdown
+    model_rows = (
+        session.query(
+            RoutingLog.model_slug,
+            func.count(RoutingLog.id).label("total_count"),
+            func.avg(case((RoutingLog.status == "success", RoutingLog.latency_ms), else_=None)).label("avg_lat"),
+            func.sum(case((RoutingLog.status == "success", 1), else_=0)).label("successes"),
+            func.sum(case((RoutingLog.status != "success", 1), else_=0)).label("errors"),
+        )
+        .group_by(RoutingLog.model_slug)
+        .order_by(func.count(RoutingLog.id).desc())
+        .all()
+    )
+
+    model_performance = [
+        {
+            "model_slug": r[0],
+            "count": r[1],
+            "avg_latency_ms": round(float(r[2]), 1) if r[2] is not None else 0.0,
+            "success_count": int(r[3] or 0),
+            "error_count": int(r[4] or 0),
+        }
+        for r in model_rows
+    ]
+
+    # Non-success error breakdown
+    error_rows = (
+        session.query(
+            RoutingLog.status,
+            func.count(RoutingLog.id).label("status_count"),
+        )
+        .filter(RoutingLog.status != "success")
+        .group_by(RoutingLog.status)
+        .order_by(func.count(RoutingLog.id).desc())
+        .all()
+    )
+
+    error_breakdown = [
+        {"status": r[0], "count": r[1]}
+        for r in error_rows
+    ]
+
+    return {
+        "total_requests": total_requests,
+        "success_rate": success_rate,
+        "avg_latency_ms": avg_latency_ms,
+        "total_fallbacks": total_fallbacks,
+        "model_performance": model_performance,
+        "error_breakdown": error_breakdown,
+    }
+
+
+def get_dashboard_logs(session: Session, limit: int = 50) -> dict:
+    """Returns the latest routing logs joined with message text and latest conversations."""
+    query = (
+        session.query(
+            RoutingLog,
+            Message.content.label("message_content"),
+        )
+        .outerjoin(Message, RoutingLog.message_id == Message.id)
+        .order_by(RoutingLog.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    logs = []
+    for log_entry, msg_content in query:
+        logs.append({
+            "id": log_entry.id,
+            "message_id": log_entry.message_id,
+            "conversation_id": log_entry.conversation_id,
+            "model_slug": log_entry.model_slug,
+            "tier": log_entry.tier,
+            "status": log_entry.status,
+            "error": log_entry.error,
+            "latency_ms": log_entry.latency_ms,
+            "attempt_num": log_entry.attempt_num,
+            "created_at": log_entry.created_at.isoformat() if log_entry.created_at else None,
+            "message_content": msg_content,
+        })
+
+    convs = list_conversations_with_count(session)[:20]
+
+    return {
+        "logs": logs,
+        "conversations": convs,
+    }
