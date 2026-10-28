@@ -5,6 +5,8 @@ export default function ChatPane({
   messages,
   input,
   setInput,
+  mode = 'auto',
+  setMode,
   isStreaming,
   isSaving,
   onSendMessage,
@@ -139,6 +141,25 @@ export default function ChatPane({
 
       {/* Input Form */}
       <footer className="border-t border-slate-800 bg-slate-900/50 backdrop-blur p-4">
+        <div className="max-w-4xl mx-auto mb-2 flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center space-x-2">
+            <span className="font-medium text-slate-400">Routing Mode:</span>
+            <select
+              value={mode}
+              onChange={(e) => setMode && setMode(e.target.value)}
+              disabled={isStreaming || isSaving}
+              className="bg-slate-950 border border-slate-700 text-emerald-400 font-medium rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer disabled:opacity-50"
+            >
+              <option value="auto">⚡ Auto (Smart Complexity Classifier)</option>
+              <option value="fastest">🚀 Fastest (Tier 1 Priority)</option>
+              <option value="power">💪 Power (Tier 2 Priority)</option>
+              <option value="deep">🧠 Deep (Tier 3 Reasoning)</option>
+            </select>
+          </div>
+          <span className="text-[11px] text-slate-500 hidden sm:inline">
+            8s per-slug timeout cascade
+          </span>
+        </div>
         <form
           onSubmit={onSendMessage}
           className="max-w-4xl mx-auto flex items-center space-x-3"

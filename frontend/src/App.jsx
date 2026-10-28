@@ -15,6 +15,7 @@ export default function App() {
   const [activeId, setActiveId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [mode, setMode] = useState('auto');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingList, setIsLoadingList] = useState(true);
@@ -143,6 +144,7 @@ export default function App() {
       await sendChatMessage({
         conversationId: activeId,
         message: trimmed,
+        mode,
         onToken: (token) => {
           setMessages((prev) =>
             prev.map((m) =>
@@ -264,6 +266,8 @@ export default function App() {
           messages={messages}
           input={input}
           setInput={setInput}
+          mode={mode}
+          setMode={setMode}
           isStreaming={isStreaming}
           isSaving={isSaving}
           onSendMessage={handleSendMessage}

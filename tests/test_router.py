@@ -230,3 +230,62 @@ def test_unexpected_exception_not_swallowed(router_builder):
         assert logs[0].model_slug == slug1
         assert logs[0].status == "server_error"
         assert "ValueError" in logs[0].error
+
+
+def test_router_modes_tier_prioritization(router_builder):
+    """Routing modes (fastest, power, deep) alter the tier attempt cascade order."""
+    tiers = {
+        "tier1": ["t1-m1"],
+        "tier2": ["t2-m1"],
+        "tier3": ["t3-m1"],
+    }
+    router, provider, breaker, session_factory = router_builder(tiers=tiers)
+
+    # Fastest mode starts with tier 1
+    outcome_fast = router.route([{"role": "user", "content": "hi"}], mode="fastest")
+    assert outcome_fast.model_slug == "t1-m1"
+    assert outcome_fast.tier == "tier1"
+
+    # Power mode starts with tier 2
+    outcome_power = router.route([{"role": "user", "content": "hi"}], mode="power")
+    assert outcome_power.model_slug == "t2-m1"
+    assert outcome_power.tier == "tier2"
+
+    # Deep mode starts with tier 3
+    outcome_deep = router.route([{"role": "user", "content": "hi"}], mode="deep")
+    assert outcome_deep.model_slug == "t3-m1"
+    assert outcome_deep.tier == "tier3"
+
+
+def test_router_auto_mode_uses_classifier(router_builder):
+    """Auto mode automatically selects tier order according to prompt complexity."""
+    tiers = {
+        "tier1": ["t1-m1"],
+        "tier2": ["t2-m1"],
+        "tier3": ["t3-m1"],
+    }
+    router, provider, breaker, session_factory = router_builder(tiers=tiers)
+
+    # Complex math prompt triggers Tier 3 first
+    outcome_math = router.route([{"role": "user", "content": "Calculate √256"}], mode="auto")
+    assert outcome_math.model_slug == "t3-m1"
+    assert outcome_math.tier == "tier3"
+
+    # Explanation prompt triggers Tier 2 first
+    outcome_explain = router.route([{"role": "user", "content": "Explain how caching works"}], mode="auto")
+    assert outcome_explain.model_slug == "t2-m1"
+    assert outcome_explain.tier == "tier2"
+
+    # Simple prompt triggers Tier 1 first
+    outcome_simple = router.route([{"role": "user", "content": "Hello"}], mode="auto")
+    assert outcome_simple.model_slug == "t1-m1"
+    assert outcome_simple.tier == "tier1"
+
+
+def test_router_passes_timeout_to_provider(router_builder):
+    """Router passes timeout_s (default 8s) to provider.complete call."""
+    router, provider, breaker, session_factory = router_builder()
+    router.route([{"role": "user", "content": "hi"}], timeout_s=8)
+
+    assert len(provider.calls) > 0
+    assert provider.calls[0]["timeout_s"] == 8

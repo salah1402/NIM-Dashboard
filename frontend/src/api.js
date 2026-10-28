@@ -54,6 +54,7 @@ export async function sendChatMessage({
   conversationId,
   message,
   forceModel,
+  mode,
   onToken,
   onComplete,
   onError,
@@ -68,6 +69,7 @@ export async function sendChatMessage({
         conversation_id: conversationId || undefined,
         message,
         force_model: forceModel || undefined,
+        mode: mode || 'auto',
       }),
     });
 

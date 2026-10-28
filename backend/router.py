@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Any
 from backend.circuit_breaker import CircuitBreaker
 from backend.provider import LLMProvider, ProviderResult
+from backend.classifier import classify_complexity
 from backend.errors import (
     RouterError,
     AuthError,
@@ -74,21 +75,28 @@ class FallbackRouter:
         tiers: Dict[str, List[str]],
         exclude: Set[str],
         session_factory=None,
+        timeout_s: int = 8,
     ):
         self.provider = provider
         self.breaker = breaker
         self.tiers = tiers
         self.exclude = set(exclude) if exclude else set()
         self.session_factory = session_factory
+        self.timeout_s = timeout_s
 
-    def get_candidate_models(self, force_model: Optional[str] = None) -> List[tuple[str, str]]:
-        """Builds ordered candidate list: tier1 -> tier2 -> tier3, excluding slugs in exclude.
+    def get_candidate_models(
+        self,
+        force_model: Optional[str] = None,
+        tier_order: Optional[List[str]] = None,
+    ) -> List[tuple[str, str]]:
+        """Builds ordered candidate list across tiers, excluding slugs in exclude.
 
         If force_model is set and present in candidates, restricts to just [force_model].
         """
         candidates: List[tuple[str, str]] = []
         seen = set()
-        for tier in ("tier1", "tier2", "tier3"):
+        order = tier_order or ["tier1", "tier2", "tier3"]
+        for tier in order:
             for slug in self.tiers.get(tier, []):
                 if slug not in self.exclude and slug not in seen:
                     candidates.append((slug, tier))
@@ -105,9 +113,34 @@ class FallbackRouter:
         conversation_id: Optional[str] = None,
         message_id: Optional[str] = None,
         force_model: Optional[str] = None,
+        mode: Optional[str] = "auto",
+        timeout_s: Optional[int] = None,
     ) -> RoutingOutcome:
-        candidates = self.get_candidate_models(force_model=force_model)
+        # Determine tier cascade order based on mode or complexity
+        m = (mode or "auto").lower().strip()
+        if m == "fastest":
+            tier_order = ["tier1", "tier2", "tier3"]
+        elif m == "power":
+            tier_order = ["tier2", "tier3", "tier1"]
+        elif m == "deep":
+            tier_order = ["tier3", "tier2", "tier1"]
+        else:  # auto
+            last_user_text = ""
+            for msg in reversed(messages):
+                if isinstance(msg, dict) and msg.get("role") == "user":
+                    last_user_text = msg.get("content", "")
+                    break
+            classified = classify_complexity(last_user_text)
+            if classified == "tier3":
+                tier_order = ["tier3", "tier2", "tier1"]
+            elif classified == "tier2":
+                tier_order = ["tier2", "tier3", "tier1"]
+            else:
+                tier_order = ["tier1", "tier2", "tier3"]
+
+        candidates = self.get_candidate_models(force_model=force_model, tier_order=tier_order)
         attempts: List[AttemptLog] = []
+        effective_timeout = timeout_s if timeout_s is not None else self.timeout_s
 
         for attempt_idx, (slug, tier) in enumerate(candidates, start=1):
             # 2a. Circuit breaker check
@@ -139,7 +172,7 @@ class FallbackRouter:
             # 2b. Attempt completion with wall-clock guard
             t0 = time.perf_counter()
             try:
-                result = self.provider.complete(messages, model_slug=slug)
+                result = self.provider.complete(messages, model_slug=slug, timeout_s=effective_timeout)
                 elapsed_ms = int((time.perf_counter() - t0) * 1000)
                 latency = result.latency_ms if result.latency_ms is not None else elapsed_ms
 

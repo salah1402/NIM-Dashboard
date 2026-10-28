@@ -29,7 +29,12 @@ class LLMProvider(ABC):
     """Abstract base class for LLM completion providers."""
 
     @abstractmethod
-    def complete(self, messages: List[Dict[str, Any]], model_slug: str) -> ProviderResult:
+    def complete(
+        self,
+        messages: List[Dict[str, Any]],
+        model_slug: str,
+        timeout_s: Optional[int] = None,
+    ) -> ProviderResult:
         """Execute chat completion for the given messages and model slug.
 
         Raises RouterError subclasses on failure.
@@ -44,7 +49,7 @@ class RealProvider(LLMProvider):
         self,
         api_key: str,
         base_url: str,
-        timeout_s: int = 30,
+        timeout_s: int = 8,
         client: Optional[openai.OpenAI] = None,
     ):
         self.api_key = api_key
@@ -57,13 +62,20 @@ class RealProvider(LLMProvider):
             timeout=self.timeout_s,
         )
 
-    def complete(self, messages: List[Dict[str, Any]], model_slug: str) -> ProviderResult:
+    def complete(
+        self,
+        messages: List[Dict[str, Any]],
+        model_slug: str,
+        timeout_s: Optional[int] = None,
+    ) -> ProviderResult:
         t0 = time.perf_counter()
+        effective_timeout = timeout_s if timeout_s is not None else self.timeout_s
         try:
             resp = self.client.chat.completions.create(
                 model=model_slug,
                 messages=messages,
                 stream=False,
+                timeout=effective_timeout,
             )
             elapsed_ms = int((time.perf_counter() - t0) * 1000)
             msg = resp.choices[0].message
@@ -112,8 +124,13 @@ class MockProvider(LLMProvider):
     def set_fail_plan(self, fail_plan: Dict[str, List[str]]) -> None:
         self.fail_plan = {k: list(v) for k, v in fail_plan.items()}
 
-    def complete(self, messages: List[Dict[str, Any]], model_slug: str) -> ProviderResult:
-        self.calls.append({"model_slug": model_slug, "messages": messages})
+    def complete(
+        self,
+        messages: List[Dict[str, Any]],
+        model_slug: str,
+        timeout_s: Optional[int] = None,
+    ) -> ProviderResult:
+        self.calls.append({"model_slug": model_slug, "messages": messages, "timeout_s": timeout_s})
 
         # Check if there is an active failure plan for this slug
         if model_slug in self.fail_plan and self.fail_plan[model_slug]:

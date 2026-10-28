@@ -75,7 +75,7 @@ def setup_app_state():
                 f"USE_MOCK is false but required environment variables are missing: {', '.join(missing)}"
             )
 
-        real_prov = RealProvider(api_key=api_key, base_url=base_url, timeout_s=30)
+        real_prov = RealProvider(api_key=api_key, base_url=base_url, timeout_s=8)
         provider = real_prov
         # Live model discovery on startup
         discovery_result = discover_live_models(
@@ -127,6 +127,7 @@ class ChatRequest(BaseModel):
     conversation_id: Optional[str] = None
     message: str
     force_model: Optional[str] = None
+    mode: Optional[str] = "auto"
 
 
 class MessageOut(BaseModel):
@@ -276,6 +277,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                     messages=msg_history,
                     conversation_id=conversation_id,
                     force_model=request.force_model,
+                    mode=request.mode,
                 )
 
                 # Persist successful assistant message
