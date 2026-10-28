@@ -1,13 +1,14 @@
 tier1:
-  - deepseek-ai/deepseek-v3.1
-  - qwen/qwen2.5-coder-32b-instruct
+  - deepseek-ai/deepseek-v4-flash
+  - qwen/qwen3-next-80b-a3b-instruct
+  - stepfun-ai/step-3.5-flash
   - nvidia/nemotron-3.5-super-vl-120b-a12b
 
 tier2:
-  - deepseek-ai/deepseek-r1
-  - qwen/qwen2.5-72b-instruct
+  - deepseek-ai/deepseek-v4-pro
+  - z-ai/glm-5.2
   - moonshotai/kimi-k2.6
-  - z-ai/glm-5.3
+  - openai/gpt-oss-120b
 
 tier3:
   - nvidia/nemotron-3-ultra-550b-a55b
