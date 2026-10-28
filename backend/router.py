@@ -1,3 +1,4 @@
+import logging
 import time
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Any
@@ -15,6 +16,8 @@ from backend.errors import (
     AllModelsFailed,
 )
 from backend import repository
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -52,7 +55,7 @@ class RoutingOutcome:
 TIER_TIMEOUTS = {
     "tier1": 5,
     "tier2": 12,
-    "tier3": 30,
+    "tier3": 90,
 }
 
 
@@ -224,6 +227,7 @@ class FallbackRouter:
 
             except RouterError as exc:
                 elapsed_ms = int((time.perf_counter() - t0) * 1000)
+                logger.error(f"Model {slug} failed: {exc}")
                 self.breaker.record_failure(slug)
                 status = _map_exception_to_status(exc)
                 err_msg = str(exc)
@@ -253,6 +257,7 @@ class FallbackRouter:
 
             except Exception as exc:
                 elapsed_ms = int((time.perf_counter() - t0) * 1000)
+                logger.error(f"Model {slug} failed unexpectedly: {exc}")
                 err_repr = repr(exc)
                 log_entry = repository.log_routing_attempt(
                     model_slug=slug,

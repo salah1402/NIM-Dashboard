@@ -34,6 +34,7 @@ class LLMProvider(ABC):
         messages: List[Dict[str, Any]],
         model_slug: str,
         timeout_s: Optional[int] = None,
+        max_tokens: Optional[int] = 4096,
     ) -> ProviderResult:
         """Execute chat completion for the given messages and model slug.
 
@@ -67,15 +68,18 @@ class RealProvider(LLMProvider):
         messages: List[Dict[str, Any]],
         model_slug: str,
         timeout_s: Optional[int] = None,
+        max_tokens: Optional[int] = 4096,
     ) -> ProviderResult:
         t0 = time.perf_counter()
         effective_timeout = timeout_s if timeout_s is not None else (self.timeout_s or 30)
+        effective_max_tokens = max_tokens if max_tokens is not None else 4096
         try:
             resp = self.client.chat.completions.create(
                 model=model_slug,
                 messages=messages,
                 stream=False,
                 timeout=effective_timeout,
+                max_tokens=effective_max_tokens,
             )
             elapsed_ms = int((time.perf_counter() - t0) * 1000)
             msg = resp.choices[0].message
@@ -86,27 +90,27 @@ class RealProvider(LLMProvider):
                 latency_ms=elapsed_ms,
             )
         except openai.AuthenticationError as e:
-            logger.debug("AuthenticationError on slug %s: %s", model_slug, e.__class__.__name__)
+            logger.error("AuthenticationError on slug %s: %s", model_slug, e)
             raise AuthError(f"Authentication failed for model {model_slug}") from None
         except openai.RateLimitError as e:
-            logger.debug("RateLimitError on slug %s: %s", model_slug, e.__class__.__name__)
+            logger.error("RateLimitError on slug %s: %s", model_slug, e)
             raise RateLimitedError(f"HTTP 429 Rate limit exceeded for {model_slug}") from None
         except openai.NotFoundError as e:
-            logger.debug("NotFoundError on slug %s: %s", model_slug, e.__class__.__name__)
+            logger.error("NotFoundError on slug %s: %s", model_slug, e)
             raise DeadModelError(f"HTTP 404 Model not found: {model_slug}") from None
         except openai.InternalServerError as e:
-            logger.debug("InternalServerError on slug %s: %s", model_slug, e.__class__.__name__)
+            logger.error("InternalServerError on slug %s: %s", model_slug, e)
             raise ServerError(f"HTTP 500 Internal server error for {model_slug}", status_code=500) from None
         except openai.APITimeoutError as e:
-            logger.debug("APITimeoutError on slug %s: %s", model_slug, e.__class__.__name__)
+            logger.error("APITimeoutError on slug %s: %s", model_slug, e)
             raise TimeoutError(f"Timeout for {model_slug}") from None
         except openai.APIConnectionError as e:
-            logger.debug("APIConnectionError on slug %s: %s", model_slug, e.__class__.__name__)
+            logger.error("APIConnectionError on slug %s: %s", model_slug, e)
             raise ConnectionError(f"Connection failed for {model_slug}") from None
         except openai.APIStatusError as e:
             code = getattr(e, "status_code", None)
-            logger.debug("APIStatusError on slug %s: %s (status_code=%s)", model_slug, e.__class__.__name__, code)
-            raise ServerError(f"HTTP status error ({code}) for {model_slug}", status_code=code) from None
+            logger.error("APIStatusError on slug %s: %s (status_code=%s)", model_slug, e, code)
+            raise ServerError(f"HTTP status error ({code}) for {model_slug}: {e}", status_code=code) from None
 
 
 class MockProvider(LLMProvider):
@@ -129,8 +133,9 @@ class MockProvider(LLMProvider):
         messages: List[Dict[str, Any]],
         model_slug: str,
         timeout_s: Optional[int] = None,
+        max_tokens: Optional[int] = 4096,
     ) -> ProviderResult:
-        self.calls.append({"model_slug": model_slug, "messages": messages, "timeout_s": timeout_s})
+        self.calls.append({"model_slug": model_slug, "messages": messages, "timeout_s": timeout_s, "max_tokens": max_tokens})
 
         # Check if there is an active failure plan for this slug
         if model_slug in self.fail_plan and self.fail_plan[model_slug]:
