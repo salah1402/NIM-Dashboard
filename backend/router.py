@@ -5,6 +5,7 @@ from backend.circuit_breaker import CircuitBreaker
 from backend.provider import LLMProvider, ProviderResult
 from backend.errors import (
     RouterError,
+    AuthError,
     RateLimitedError,
     DeadModelError,
     ServerError,
@@ -174,6 +175,10 @@ class FallbackRouter:
                     attempts=attempts,
                     fallback_count=len(attempts) - 1,
                 )
+
+            except AuthError:
+                # AuthError is a configuration / credential failure; must NOT trigger fallback across candidate slugs
+                raise
 
             except RouterError as exc:
                 elapsed_ms = int((time.perf_counter() - t0) * 1000)

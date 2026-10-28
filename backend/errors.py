@@ -6,6 +6,11 @@ class RouterError(Exception):
     pass
 
 
+class AuthError(RouterError):
+    """Maps to HTTP 401 - Authentication failure (invalid API key). Must NOT trigger fallback."""
+    pass
+
+
 class RateLimitedError(RouterError):
     """Maps to HTTP 429 - Rate limit exceeded."""
     pass
@@ -17,8 +22,10 @@ class DeadModelError(RouterError):
 
 
 class ServerError(RouterError):
-    """Maps to HTTP 5xx - Provider internal server error."""
-    pass
+    """Maps to HTTP 5xx - Provider internal server error or unexpected HTTP status."""
+    def __init__(self, message: str, status_code: Optional[int] = None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 class TimeoutError(RouterError):

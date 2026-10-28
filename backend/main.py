@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from contextlib import asynccontextmanager
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Depends
@@ -10,12 +11,86 @@ from sqlalchemy.orm import Session
 
 from backend.db import init_db, get_db, SessionLocal
 from backend.models import Conversation, Message
-from backend.provider import MockProvider
+from backend.provider import MockProvider, RealProvider, LLMProvider
 from backend.circuit_breaker import CircuitBreaker
 from backend.router import FallbackRouter
-from backend.errors import AllModelsFailed
-from backend.config import models_config
+from backend.errors import AllModelsFailed, AuthError
+from backend.config import (
+    models_config,
+    is_mock_enabled,
+    get_nvidia_api_key,
+    get_nvidia_base_url,
+)
+from backend.discovery import discover_live_models, DiscoveryResult
 from backend import repository
+
+logger = logging.getLogger(__name__)
+
+# Global app state
+provider: LLMProvider
+mock_provider: Optional[MockProvider] = None
+router: FallbackRouter
+discovery_result: DiscoveryResult
+breaker: CircuitBreaker
+USE_MOCK: bool = True
+
+
+def setup_app_state():
+    """Initializes or refreshes provider, breaker, router, and live model discovery."""
+    global provider, mock_provider, router, discovery_result, breaker, USE_MOCK
+
+    USE_MOCK = is_mock_enabled()
+
+    breaker_cfg = models_config.get("circuit_breaker", {})
+    breaker = CircuitBreaker(
+        failure_threshold=breaker_cfg.get("failure_threshold", 3),
+        window_seconds=breaker_cfg.get("window_seconds", 60),
+        cooldown_seconds=breaker_cfg.get("cooldown_seconds", 300),
+        half_open_after=breaker_cfg.get("half_open_after", 300),
+    )
+
+    raw_tiers = {
+        "tier1": list(models_config.get("tier1", [])),
+        "tier2": list(models_config.get("tier2", [])),
+        "tier3": list(models_config.get("tier3", [])),
+    }
+
+    if USE_MOCK:
+        mock_provider = MockProvider()
+        provider = mock_provider
+        discovery_result = discover_live_models(client=None, yaml_tiers=raw_tiers)
+    else:
+        api_key = get_nvidia_api_key()
+        base_url = get_nvidia_base_url()
+
+        missing = []
+        if not api_key:
+            missing.append("NVIDIA_API_KEY")
+        if not base_url:
+            missing.append("NVIDIA_BASE_URL")
+        if missing:
+            raise RuntimeError(
+                f"USE_MOCK is false but required environment variables are missing: {', '.join(missing)}"
+            )
+
+        real_prov = RealProvider(api_key=api_key, base_url=base_url, timeout_s=30)
+        provider = real_prov
+        # Live model discovery on startup
+        discovery_result = discover_live_models(
+            client=real_prov.client,
+            yaml_tiers=raw_tiers,
+        )
+
+    router = FallbackRouter(
+        provider=provider,
+        breaker=breaker,
+        tiers=discovery_result.tiers,
+        exclude=set(models_config.get("exclude", [])),
+    )
+
+
+# Perform initial setup
+setup_app_state()
 
 
 @asynccontextmanager
@@ -28,7 +103,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="NIM Dashboard API", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="NIM Dashboard API", version="0.3.0", lifespan=lifespan)
 
 # Enable CORS for local dev
 app.add_middleware(
@@ -37,26 +112,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-# Initialize breaker, provider, and router
-breaker_cfg = models_config.get("circuit_breaker", {})
-breaker = CircuitBreaker(
-    failure_threshold=breaker_cfg.get("failure_threshold", 3),
-    window_seconds=breaker_cfg.get("window_seconds", 60),
-    cooldown_seconds=breaker_cfg.get("cooldown_seconds", 300),
-    half_open_after=breaker_cfg.get("half_open_after", 300),
-)
-mock_provider = MockProvider()
-router = FallbackRouter(
-    provider=mock_provider,
-    breaker=breaker,
-    tiers={
-        "tier1": models_config.get("tier1", []),
-        "tier2": models_config.get("tier2", []),
-        "tier3": models_config.get("tier3", []),
-    },
-    exclude=set(models_config.get("exclude", [])),
 )
 
 
@@ -97,7 +152,18 @@ class ConversationOut(BaseModel):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "nim-dashboard-api"}
+    """Health check endpoint exposing runtime mode."""
+    return {
+        "status": "ok",
+        "service": "nim-dashboard-api",
+        "mode": "mock" if USE_MOCK else "real",
+    }
+
+
+@app.get("/api/models")
+def get_models():
+    """Returns live, pruned, and active tier models from model discovery."""
+    return discovery_result.to_dict()
 
 
 @app.get("/api/router/state")
@@ -195,7 +261,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     )
     repository.touch_conversation(db, conversation_id)
 
-    # Step d-h: Stream reply and persist assistant response via router
+    # Step d-h: Execute cascade route and stream simulated token chunks over SSE
     async def event_generator():
         with SessionLocal() as stream_db:
             try:
@@ -203,7 +269,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                 current_msgs = repository.list_messages(stream_db, conversation_id)
                 msg_history = [{"role": m.role, "content": m.content} for m in current_msgs]
 
-                # Run cascade routing
+                # Run cascade routing (non-streaming)
                 outcome = router.route(
                     messages=msg_history,
                     conversation_id=conversation_id,
@@ -226,15 +292,47 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                 log_ids = [a.log_id for a in outcome.attempts if a.log_id]
                 repository.link_routing_logs_to_message(stream_db, log_ids, assistant_msg.id)
 
-                # Stream tokens
-                words = outcome.content.split(" ")
-                for i, word in enumerate(words):
-                    piece = word + (" " if i < len(words) - 1 else "")
-                    yield f"data: {json.dumps({'token': piece, 'done': False})}\n\n"
-                    await asyncio.sleep(0.01)
+                # 1. Emit SSE "meta" event first
+                attempts_meta = [
+                    {"slug": a.model_slug, "status": a.status}
+                    for a in outcome.attempts
+                ]
+                meta_payload = {
+                    "event": "meta",
+                    "conversation_id": conversation_id,
+                    "model_slug": outcome.model_slug,
+                    "tier": outcome.tier,
+                    "fallback_count": outcome.fallback_count,
+                    "attempts": attempts_meta,
+                }
+                yield f"data: {json.dumps(meta_payload)}\n\n"
 
-                # Final SSE chunk includes conversation_id and fallback_count
-                yield f"data: {json.dumps({'token': '', 'done': True, 'model_slug': outcome.model_slug, 'latency_ms': outcome.latency_ms, 'conversation_id': conversation_id, 'fallback_count': outcome.fallback_count})}\n\n"
+                # 2. Chunk content into ~5-word SSE "token" events every ~15ms so UI animates
+                words = outcome.content.split(" ")
+                chunk_size = 5
+                for i in range(0, len(words), chunk_size):
+                    chunk_slice = words[i : i + chunk_size]
+                    token = " ".join(chunk_slice)
+                    if i + chunk_size < len(words):
+                        token += " "
+                    token_payload = {
+                        "event": "token",
+                        "token": token,
+                        "done": False,
+                    }
+                    yield f"data: {json.dumps(token_payload)}\n\n"
+                    await asyncio.sleep(0.015)
+
+                # 3. Emit final "done" event
+                done_payload = {
+                    "event": "done",
+                    "done": True,
+                    "model_slug": outcome.model_slug,
+                    "latency_ms": outcome.latency_ms,
+                    "conversation_id": conversation_id,
+                    "fallback_count": outcome.fallback_count,
+                }
+                yield f"data: {json.dumps(done_payload)}\n\n"
 
             except AllModelsFailed as exc:
                 err_placeholder = "⚠️ Response failed: All candidate models failed"
@@ -253,10 +351,27 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                     log_ids = [a.log_id for a in exc.attempts if a.log_id]
                     repository.link_routing_logs_to_message(stream_db, log_ids, assistant_msg.id)
 
-                    attempts_data = [a.to_dict() for a in exc.attempts]
-                    yield f"data: {json.dumps({'error': 'all_models_failed', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'attempts': attempts_data, 'conversation_id': conversation_id, 'fallback_count': len(exc.attempts)})}\n\n"
+                    attempts_meta = [{"slug": a.model_slug, "status": a.status} for a in exc.attempts]
+                    yield f"data: {json.dumps({'event': 'error', 'error': 'all_models_failed', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'attempts': attempts_meta, 'conversation_id': conversation_id, 'fallback_count': len(exc.attempts)})}\n\n"
                 except Exception as persist_err:
                     print(f"Error persisting all-models-failed placeholder: {persist_err}")
+
+            except AuthError as exc:
+                err_placeholder = f"⚠️ Response failed: {str(exc)}"
+                try:
+                    assistant_msg = repository.add_message(
+                        session=stream_db,
+                        conversation_id=conversation_id,
+                        role="assistant",
+                        content=err_placeholder,
+                        model_slug=None,
+                        latency_ms=None,
+                        fallback_count=0,
+                    )
+                    repository.touch_conversation(stream_db, conversation_id)
+                    yield f"data: {json.dumps({'event': 'error', 'error': 'auth_error', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
+                except Exception as persist_err:
+                    print(f"Error persisting auth error placeholder: {persist_err}")
 
             except BaseException as exc:
                 reason = str(exc) if str(exc).strip() else exc.__class__.__name__
@@ -272,7 +387,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                         fallback_count=0,
                     )
                     repository.touch_conversation(stream_db, conversation_id)
-                    yield f"data: {json.dumps({'error': 'server_error', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
+                    yield f"data: {json.dumps({'event': 'error', 'error': 'server_error', 'token': f'\\n\\n{err_placeholder}', 'done': True, 'conversation_id': conversation_id})}\n\n"
                 except Exception as persist_err:
                     print(f"Error persisting failure placeholder: {persist_err}")
                 raise
