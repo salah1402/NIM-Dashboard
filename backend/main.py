@@ -17,6 +17,7 @@ from backend.router import FallbackRouter
 from backend.errors import AllModelsFailed, AuthError
 from backend.config import (
     models_config,
+    load_models_config,
     is_mock_enabled,
     get_nvidia_api_key,
     get_nvidia_base_url,
@@ -40,8 +41,9 @@ def setup_app_state():
     global provider, mock_provider, router, discovery_result, breaker, USE_MOCK
 
     USE_MOCK = is_mock_enabled()
+    cfg = load_models_config()
 
-    breaker_cfg = models_config.get("circuit_breaker", {})
+    breaker_cfg = cfg.get("circuit_breaker", {})
     breaker = CircuitBreaker(
         failure_threshold=breaker_cfg.get("failure_threshold", 3),
         window_seconds=breaker_cfg.get("window_seconds", 60),
@@ -50,9 +52,9 @@ def setup_app_state():
     )
 
     raw_tiers = {
-        "tier1": list(models_config.get("tier1", [])),
-        "tier2": list(models_config.get("tier2", [])),
-        "tier3": list(models_config.get("tier3", [])),
+        "tier1": list(cfg.get("tier1", [])),
+        "tier2": list(cfg.get("tier2", [])),
+        "tier3": list(cfg.get("tier3", [])),
     }
 
     if USE_MOCK:
@@ -85,7 +87,7 @@ def setup_app_state():
         provider=provider,
         breaker=breaker,
         tiers=discovery_result.tiers,
-        exclude=set(models_config.get("exclude", [])),
+        exclude=set(cfg.get("exclude", [])),
     )
 
 

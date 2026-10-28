@@ -115,5 +115,7 @@ def test_router_state_endpoint(temp_db):
     data = response.json()
     assert isinstance(data, dict)
     # Check that tier1 models are present in state
-    assert "meta/llama-4-maverick-17b-128e-instruct" in data
-    assert "state" in data["meta/llama-4-maverick-17b-128e-instruct"]
+    assert len(data) > 0
+    first_tier1 = router.tiers["tier1"][0]
+    assert first_tier1 in data
+    assert "state" in data[first_tier1]

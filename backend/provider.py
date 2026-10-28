@@ -66,7 +66,8 @@ class RealProvider(LLMProvider):
                 stream=False,
             )
             elapsed_ms = int((time.perf_counter() - t0) * 1000)
-            content = resp.choices[0].message.content or ""
+            msg = resp.choices[0].message
+            content = msg.content or getattr(msg, "reasoning_content", None) or ""
             return ProviderResult(
                 content=content,
                 model_slug=model_slug,
