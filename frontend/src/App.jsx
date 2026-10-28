@@ -215,33 +215,33 @@ export default function App() {
   const activeConversation = conversations.find((c) => c.id === activeId);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
       {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur px-6 py-3 flex items-center justify-between z-10">
+      <header className="border-b border-slate-200 bg-white px-6 py-3 flex items-center justify-between z-10 shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center font-bold text-emerald-600">
             N
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-base font-semibold tracking-wide text-white">NIM Dashboard</h1>
-              <span className="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium">
+              <h1 className="text-base font-semibold tracking-wide text-slate-900">NIM Dashboard</h1>
+              <span className="text-[10px] font-mono uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
                 Phase 5
               </span>
             </div>
-            <p className="text-xs text-slate-400">Self-hosted NVIDIA NIM Multi-Slug Cascade Router</p>
+            <p className="text-xs text-slate-500">Self-hosted NVIDIA NIM Multi-Slug Cascade Router</p>
           </div>
         </div>
 
         {/* View Switcher Toggle */}
-        <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
           <button
             type="button"
             onClick={() => setView('chat')}
             className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               view === 'chat'
-                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'bg-white text-slate-900 font-semibold shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
             }`}
           >
             <span>💬 Chat</span>
@@ -251,28 +251,28 @@ export default function App() {
             onClick={() => setView('dashboard')}
             className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               view === 'dashboard'
-                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'bg-white text-slate-900 font-semibold shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
             }`}
           >
             <span>📊 Dashboard</span>
           </button>
         </div>
 
-        <div className="flex items-center space-x-4 text-xs font-mono">
-          <div className="hidden sm:flex items-center space-x-1.5 bg-slate-800/80 px-3 py-1.5 rounded-md border border-slate-700/60 text-slate-300">
+        <div className="flex items-center space-x-3 text-xs font-mono">
+          <div className="hidden sm:flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600">
             <span className="text-slate-400">Rate Limit:</span>
-            <span className="text-emerald-400 font-semibold">40 RPM / Slug</span>
+            <span className="text-emerald-600 font-semibold">40 RPM / Slug</span>
           </div>
-          <div className="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-md border border-slate-700/60">
+          <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
             <span
               className={`w-2 h-2 rounded-full ${
                 backendHealth === 'connected'
-                  ? 'bg-emerald-400 animate-pulse'
-                  : 'bg-red-500'
+                  ? 'bg-emerald-500 animate-pulse'
+                  : 'bg-rose-500'
               }`}
             />
-            <span className="text-slate-300">
+            <span className="text-slate-600">
               API: {backendHealth === 'connected' ? '8000 OK' : backendHealth}
             </span>
           </div>

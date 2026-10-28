@@ -29,20 +29,20 @@ export default function ChatPane({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-950 overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 overflow-hidden">
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto px-4 py-6 max-w-4xl w-full mx-auto space-y-5">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center px-4 py-16">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mb-4 shadow-sm">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-100">
+            <h2 className="text-lg font-semibold text-slate-900">
               {conversation ? conversation.title : 'NIM Multi-Slug Router'}
             </h2>
-            <p className="text-sm text-slate-400 max-w-md mt-1 mb-6">
+            <p className="text-sm text-slate-500 max-w-md mt-1 mb-6">
               Ask anything to test SQLite persistence, token streaming, and automatic cascading across model slugs.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md text-left">
@@ -55,7 +55,7 @@ export default function ChatPane({
                 <button
                   key={idx}
                   onClick={() => setInput(prompt)}
-                  className="p-3 text-xs text-slate-300 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 rounded-xl transition text-left"
+                  className="p-3 text-xs text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl shadow-sm transition text-left cursor-pointer"
                 >
                   "{prompt}"
                 </button>
@@ -73,13 +73,13 @@ export default function ChatPane({
                 className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
               >
                 <div className="flex items-center space-x-2 mb-1 px-1">
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
                     {isUser ? 'You' : 'NIM Assistant'}
                   </span>
                   {msg.model_slug && (
-                    <span className="inline-flex items-center text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-950/70 border border-emerald-500/30 text-emerald-300">
+                    <span className="inline-flex items-center text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">
                       <svg
-                        className="w-3 h-3 mr-1 text-emerald-400 inline"
+                        className="w-3 h-3 mr-1 text-emerald-600 inline"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -95,7 +95,7 @@ export default function ChatPane({
                     </span>
                   )}
                   {msg.latency_ms != null && (
-                    <span className="text-[10px] font-mono text-slate-400">
+                    <span className="text-[10px] font-mono text-slate-500">
                       {msg.latency_ms}ms
                     </span>
                   )}
@@ -104,21 +104,21 @@ export default function ChatPane({
                 <div
                   className={`max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words ${
                     isUser
-                      ? 'bg-emerald-600 text-white rounded-br-none'
+                      ? 'bg-slate-900 text-white rounded-br-none'
                       : isFailed
-                      ? 'bg-amber-950/40 border border-amber-600/50 text-amber-200 rounded-bl-none'
-                      : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none'
+                      ? 'bg-rose-50 border border-rose-200 text-rose-800 rounded-bl-none'
+                      : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
                   }`}
                 >
                   {msg.content || (
                     <div className="flex items-center space-x-1 py-1 text-slate-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"></span>
                       <span
-                        className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce"
+                        className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
                         style={{ animationDelay: '0.2s' }}
                       ></span>
                       <span
-                        className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce"
+                        className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"
                         style={{ animationDelay: '0.4s' }}
                       ></span>
                     </div>
@@ -130,8 +130,8 @@ export default function ChatPane({
         )}
 
         {isSaving && (
-          <div className="flex items-center space-x-2 text-xs text-slate-400 italic px-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <div className="flex items-center space-x-2 text-xs text-slate-500 italic px-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
             <span>Saving to database...</span>
           </div>
         )}
@@ -140,15 +140,15 @@ export default function ChatPane({
       </div>
 
       {/* Input Form */}
-      <footer className="border-t border-slate-800 bg-slate-900/50 backdrop-blur p-4">
-        <div className="max-w-4xl mx-auto mb-2 flex items-center justify-between text-xs text-slate-400">
+      <footer className="border-t border-slate-200 bg-white/80 backdrop-blur p-4 shadow-sm">
+        <div className="max-w-4xl mx-auto mb-2 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center space-x-2">
-            <span className="font-medium text-slate-400">Routing Mode:</span>
+            <span className="font-medium text-slate-600">Routing Mode:</span>
             <select
               value={mode}
               onChange={(e) => setMode && setMode(e.target.value)}
               disabled={isStreaming || isSaving}
-              className="bg-slate-950 border border-slate-700 text-emerald-400 font-medium rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer disabled:opacity-50"
+              className="bg-white border border-slate-300 text-slate-800 font-medium rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-slate-500 cursor-pointer disabled:opacity-50"
             >
               <option value="auto">⚡ Auto (Smart Complexity Classifier)</option>
               <option value="fastest">🚀 Fastest (Tier 1 Priority)</option>
@@ -178,13 +178,13 @@ export default function ChatPane({
                   : 'Type a message... (saved to ./data/nim.db)'
               }
               disabled={isStreaming || isSaving}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 transition-all shadow-inner"
+              className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 disabled:opacity-50 transition-all shadow-sm"
             />
           </div>
           <button
             type="submit"
             disabled={!input.trim() || isStreaming || isSaving}
-            className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 font-medium text-sm text-white transition shadow-lg shadow-emerald-900/20 flex items-center space-x-2"
+            className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 font-medium text-sm text-white transition shadow-sm flex items-center space-x-2 cursor-pointer"
           >
             <span>Send</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
