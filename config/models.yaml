@@ -1,15 +1,16 @@
 tier1:
-  - deepseek-ai/deepseek-v4.1-flash
-  - nvidia/nemotron-3.5-super-vl-120b-a12b
+  - mistralai/mistral-large-2-instruct
+  - microsoft/phi-3-medium-128k-instruct
+  - google/gemma-2-27b-it
 
 tier2:
-  - meta/llama-3.2-90b-vision-instruct
-  - nvidia/nemotron-3.5-super-vl-120b-a12b
+  - qwen/qwen2.5-7b-instruct
+  - 01-ai/yi-large
   - openai/gpt-oss-20b
 
 tier3:
-  - nvidia/nemotron-3-ultra-550b-a55b
-  - deepseek-ai/deepseek-v4-pro
+  - moonshotai/kimi-k2.6
+  - deepseek-ai/deepseek-v4.1-flash
 
 exclude:
   - qwen/qwen3-235b-a22b

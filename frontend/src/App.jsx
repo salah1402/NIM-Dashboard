@@ -196,6 +196,21 @@ export default function App() {
         message: trimmed || 'Describe this image',
         imageB64: imageToSend,
         mode,
+        onMeta: (meta) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === asstMsgId
+                ? {
+                    ...m,
+                    model_slug: meta.model_slug,
+                    tier: meta.tier,
+                    fallback_count: meta.fallback_count,
+                    attempts: meta.attempts,
+                  }
+                : m
+            )
+          );
+        },
         onToolCall: (toolCall) => {
           setMessages((prev) =>
             prev.map((m) =>
@@ -226,6 +241,8 @@ export default function App() {
                     ...m,
                     model_slug: data.model_slug,
                     latency_ms: data.latency_ms,
+                    fallback_count: data.fallback_count != null ? data.fallback_count : m.fallback_count,
+                    attempts: data.attempts || m.attempts,
                   }
                 : m
             )

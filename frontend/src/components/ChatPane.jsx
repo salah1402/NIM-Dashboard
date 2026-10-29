@@ -400,6 +400,33 @@ export default function ChatPane({
                   .trim()
               : cleaned;
 
+            const fallbackCount = msg.fallback_count || 0;
+            let fallbackTooltip = '';
+            if (fallbackCount > 0) {
+              const failedList = (msg.attempts || []).filter(
+                (a) => a.status !== 'success' && a.slug !== msg.model_slug
+              );
+              if (failedList.length > 0) {
+                const details = failedList
+                  .map((a) => {
+                    let codeOrReason = a.status || 'failed';
+                    if (a.status === 'rate_limited') codeOrReason = '429';
+                    else if (a.status === 'timeout') codeOrReason = 'timeout';
+                    else if (a.status === 'dead_model') codeOrReason = '404';
+                    else if (a.status === 'skipped_circuit_open') codeOrReason = 'circuit open';
+                    else if (a.error && a.error.includes('429')) codeOrReason = '429';
+                    else if (a.error && a.error.toLowerCase().includes('timeout')) codeOrReason = 'timeout';
+                    return `${a.slug} (${codeOrReason})`;
+                  })
+                  .join(', ');
+                fallbackTooltip = `Failed: ${details}`;
+              } else {
+                fallbackTooltip = `Recovered via cascade router after ${fallbackCount} ${
+                  fallbackCount === 1 ? 'fallback' : 'fallbacks'
+                }`;
+              }
+            }
+
             return (
               <div
                 key={msg.id}
@@ -420,18 +447,30 @@ export default function ChatPane({
                   </div>
                 )}
 
-                {/* Assistant Message Header: Model / Latency badge */}
+                {/* Assistant Message Header: Model / Latency badge with Fallback struggle */}
                 {!isUser && msg.model_slug && (
                   <div className="flex items-center space-x-2 mb-2 px-0.5 text-[11px] text-stone-500 font-sans">
-                    <span
-                      className={`inline-flex items-center font-mono px-2 py-0.5 rounded-md font-medium text-[11px] ${
+                    <div
+                      className={`inline-flex items-center font-mono px-2 py-0.5 rounded-md font-medium text-[11px] transition-colors ${
                         isFailed
                           ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          : fallbackCount > 0
+                          ? 'bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs'
                           : 'bg-[#F0EFEA] text-stone-700 border border-[#E5E3DE]'
                       }`}
+                      title={fallbackTooltip || undefined}
                     >
-                      {msg.model_slug}
-                    </span>
+                      {fallbackCount > 0 && <span className="mr-1 text-amber-600 font-bold">⚡</span>}
+                      <span>{msg.model_slug}</span>
+                      {fallbackCount > 0 && (
+                        <span
+                          className="ml-1.5 text-[10.5px] text-amber-700 font-semibold cursor-help"
+                          title={fallbackTooltip}
+                        >
+                          ({fallbackCount} {fallbackCount === 1 ? 'fallback' : 'fallbacks'})
+                        </span>
+                      )}
+                    </div>
                     {msg.latency_ms != null && (
                       <span className="font-mono text-stone-400 text-[10.5px]">
                         {(msg.latency_ms / 1000).toFixed(1)}s

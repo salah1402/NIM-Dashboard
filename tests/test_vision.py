@@ -53,7 +53,8 @@ def test_router_prioritizes_vision_model_when_image_present():
     # The first model attempted should be a vision model
     first_attempt_model = outcome.attempts[0].model_slug
     assert is_vision_model(first_attempt_model)
-    assert first_attempt_model == "meta/llama-3.2-90b-vision-instruct"
+    # In Phase 13, nemotron is injected at the very front for vision
+    assert first_attempt_model == "nvidia/nemotron-3.5-super-vl-120b-a12b"
 
 
 def test_real_provider_formats_openai_vision_schema():

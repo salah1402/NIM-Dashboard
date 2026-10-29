@@ -178,9 +178,20 @@ class FallbackRouter:
                 tier_order = ["tier1", "tier2", "tier3"]
 
         candidates = self.get_candidate_models(force_model=force_model, tier_order=tier_order)
+        nemotron_vision_slug = "nvidia/nemotron-3.5-super-vl-120b-a12b"
+
         if has_image:
-            # Prioritize vision-capable models first
-            candidates = sorted(candidates, key=lambda c: 0 if is_vision_model(c[0]) else 1)
+            # If an image IS present, inject nvidia/nemotron-3.5-super-vl-120b-a12b at the very front of the candidate list, regardless of the tier
+            candidates = [c for c in candidates if c[0] != nemotron_vision_slug]
+            candidates.insert(0, (nemotron_vision_slug, "tier2"))
+            candidates = sorted(
+                candidates,
+                key=lambda c: 0 if c[0] == nemotron_vision_slug else (1 if is_vision_model(c[0]) else 2),
+            )
+        else:
+            # If an image is NOT present, Nemotron is completely ignored in the cascade
+            if force_model is None:
+                candidates = [c for c in candidates if "nemotron" not in c[0].lower()]
 
         attempts: List[AttemptLog] = []
 

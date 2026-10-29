@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -143,6 +143,7 @@ class MessageOut(BaseModel):
     model_slug: Optional[str] = None
     latency_ms: Optional[int] = None
     fallback_count: Optional[int] = 0
+    attempts: Optional[List[Dict[str, Any]]] = None
     created_at: str
 
 
@@ -207,20 +208,32 @@ def get_conversation_messages_endpoint(conversation_id: str, db: Session = Depen
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
     messages = repository.list_messages(db, conversation_id)
-    return [
-        MessageOut(
-            id=m.id,
-            conversation_id=m.conversation_id,
-            role=m.role,
-            content=m.content,
-            image_url=getattr(m, "image_url", None),
-            model_slug=m.model_slug,
-            latency_ms=m.latency_ms,
-            fallback_count=getattr(m, "fallback_count", 0) or 0,
-            created_at=m.created_at.isoformat() if m.created_at else "",
+    out = []
+    for m in messages:
+        m_attempts = []
+        if m.role == "assistant" and getattr(m, "routing_logs", None):
+            for rl in m.routing_logs:
+                m_attempts.append({
+                    "slug": rl.model_slug,
+                    "status": rl.status,
+                    "error": rl.error,
+                    "attempt_num": rl.attempt_num,
+                })
+        out.append(
+            MessageOut(
+                id=m.id,
+                conversation_id=m.conversation_id,
+                role=m.role,
+                content=m.content,
+                image_url=getattr(m, "image_url", None),
+                model_slug=m.model_slug,
+                latency_ms=m.latency_ms,
+                fallback_count=getattr(m, "fallback_count", 0) or 0,
+                attempts=m_attempts if m_attempts else None,
+                created_at=m.created_at.isoformat() if m.created_at else "",
+            )
         )
-        for m in messages
-    ]
+    return out
 
 
 @app.delete("/api/conversations/{conversation_id}")
@@ -370,7 +383,12 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
 
                 # 1. Emit SSE "meta" event first
                 attempts_meta = [
-                    {"slug": a.model_slug, "status": a.status}
+                    {
+                        "slug": a.model_slug,
+                        "status": a.status,
+                        "error": a.error,
+                        "attempt_num": a.attempt_num,
+                    }
                     for a in all_attempts
                 ]
                 meta_payload = {
@@ -407,6 +425,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                     "latency_ms": outcome.latency_ms,
                     "conversation_id": conversation_id,
                     "fallback_count": outcome.fallback_count,
+                    "attempts": attempts_meta,
                 }
                 yield f"data: {json.dumps(done_payload)}\n\n"
 

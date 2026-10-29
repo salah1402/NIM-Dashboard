@@ -56,6 +56,7 @@ export async function sendChatMessage({
   imageB64,
   forceModel,
   mode,
+  onMeta,
   onToken,
   onToolCall,
   onComplete,
@@ -104,6 +105,9 @@ export async function sendChatMessage({
           if (!jsonStr) continue;
           try {
             const data = JSON.parse(jsonStr);
+            if (data.event === 'meta' && onMeta) {
+              onMeta(data);
+            }
             if (data.event === 'tool_call' && onToolCall) {
               onToolCall(data);
             }
