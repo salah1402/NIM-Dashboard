@@ -195,7 +195,7 @@ export default function DashboardView() {
             <Badge variant="success" className="text-[10px] py-0.5">Live Database</Badge>
           </div>
           <p className="text-xs text-zinc-400 mt-1 pl-10.5">
-            Real-time latency benchmarks, cascade routing telemetry, and SQLite execution history.
+            Real-time latency benchmarks, cascade routing telemetry, and MongoDB Atlas execution history.
           </p>
         </div>
 
@@ -479,7 +479,7 @@ export default function DashboardView() {
               Recent Execution Logs
             </CardTitle>
             <CardDescription className="text-xs text-zinc-400 mt-0.5">
-              Live audit stream persisted in SQLite <code className="text-emerald-400 font-mono">nim.db</code>
+              Live audit stream persisted in MongoDB <code className="text-emerald-400 font-mono">nim_dashboard</code>
             </CardDescription>
           </div>
           <span className="text-xs font-mono text-zinc-400">

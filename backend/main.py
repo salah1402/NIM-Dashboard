@@ -7,9 +7,8 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy.orm import Session
 
-from backend.db import init_db, get_db, SessionLocal
+from backend.db import init_db, get_db, SessionLocal, serialize_doc
 from backend.models import Conversation, Message
 from backend.provider import MockProvider, RealProvider, LLMProvider
 from backend.circuit_breaker import CircuitBreaker
@@ -98,11 +97,10 @@ setup_app_state()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize SQLite database and tables
+    # Initialize MongoDB database, verify connection, and create indexes
     init_db()
     # Reconcile any conversations left in-flight from previous server runs
-    with SessionLocal() as session:
-        repository.reconcile_interrupted_conversations(session)
+    repository.reconcile_interrupted_conversations()
     yield
 
 
@@ -185,25 +183,27 @@ def get_router_state():
 
 
 @app.post("/api/conversations", response_model=ConversationOut)
-def create_conversation_endpoint(payload: Optional[ConversationCreate] = None, db: Session = Depends(get_db)):
+def create_conversation_endpoint(payload: Optional[ConversationCreate] = None, db = Depends(get_db)):
     title = payload.title if payload and payload.title else "New chat"
     conv = repository.create_conversation(db, title=title)
+    c_created = conv.created_at.isoformat() if hasattr(conv.created_at, "isoformat") else str(conv.created_at or "")
+    c_updated = conv.updated_at.isoformat() if hasattr(conv.updated_at, "isoformat") else str(conv.updated_at or "")
     return ConversationOut(
         id=conv.id,
         title=conv.title,
-        created_at=conv.created_at.isoformat() if conv.created_at else "",
-        updated_at=conv.updated_at.isoformat() if conv.updated_at else "",
+        created_at=c_created,
+        updated_at=c_updated,
         message_count=0,
     )
 
 
 @app.get("/api/conversations", response_model=List[ConversationOut])
-def list_conversations_endpoint(db: Session = Depends(get_db)):
+def list_conversations_endpoint(db = Depends(get_db)):
     return repository.list_conversations_with_count(db)
 
 
 @app.get("/api/conversations/{conversation_id}/messages", response_model=List[MessageOut])
-def get_conversation_messages_endpoint(conversation_id: str, db: Session = Depends(get_db)):
+def get_conversation_messages_endpoint(conversation_id: str, db = Depends(get_db)):
     conv = repository.get_conversation(db, conversation_id)
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -211,14 +211,17 @@ def get_conversation_messages_endpoint(conversation_id: str, db: Session = Depen
     out = []
     for m in messages:
         m_attempts = []
-        if m.role == "assistant" and getattr(m, "routing_logs", None):
-            for rl in m.routing_logs:
+        if m.role == "assistant":
+            # Check for linked routing logs
+            r_logs = list(db.routing_logs.find({"message_id": m.id}).sort("attempt_num", 1))
+            for rl in r_logs:
                 m_attempts.append({
-                    "slug": rl.model_slug,
-                    "status": rl.status,
-                    "error": rl.error,
-                    "attempt_num": rl.attempt_num,
+                    "slug": rl.get("model_slug"),
+                    "status": rl.get("status"),
+                    "error": rl.get("error"),
+                    "attempt_num": rl.get("attempt_num"),
                 })
+        m_created = m.created_at.isoformat() if hasattr(m.created_at, "isoformat") else str(m.created_at or "")
         out.append(
             MessageOut(
                 id=m.id,
@@ -230,14 +233,14 @@ def get_conversation_messages_endpoint(conversation_id: str, db: Session = Depen
                 latency_ms=m.latency_ms,
                 fallback_count=getattr(m, "fallback_count", 0) or 0,
                 attempts=m_attempts if m_attempts else None,
-                created_at=m.created_at.isoformat() if m.created_at else "",
+                created_at=m_created,
             )
         )
     return out
 
 
 @app.delete("/api/conversations/{conversation_id}")
-def delete_conversation_endpoint(conversation_id: str, db: Session = Depends(get_db)):
+def delete_conversation_endpoint(conversation_id: str, db = Depends(get_db)):
     deleted = repository.delete_conversation(db, conversation_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -245,7 +248,7 @@ def delete_conversation_endpoint(conversation_id: str, db: Session = Depends(get
 
 
 @app.post("/api/chat")
-async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
+async def chat_endpoint(request: ChatRequest, db = Depends(get_db)):
     user_message = request.message.strip()
     if not user_message:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
@@ -267,7 +270,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
         clean_text = " ".join(user_message.split())
         auto_title = clean_text[:50] + ("..." if len(clean_text) > 50 else "")
         conv.title = auto_title
-        db.commit()
+        repository.update_conversation_title(db, conversation_id, auto_title)
 
     # Step c: PERSIST USER MESSAGE FIRST via add_message (MUST COMMIT BEFORE STREAMING)
     repository.add_message(
@@ -499,11 +502,11 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
 
 
 @app.get("/api/dashboard/stats")
-def get_dashboard_stats_endpoint(db: Session = Depends(get_db)):
+def get_dashboard_stats_endpoint(db = Depends(get_db)):
     return repository.get_dashboard_stats(db)
 
 
 @app.get("/api/dashboard/logs")
-def get_dashboard_logs_endpoint(limit: int = 50, db: Session = Depends(get_db)):
+def get_dashboard_logs_endpoint(limit: int = 50, db = Depends(get_db)):
     return repository.get_dashboard_logs(db, limit=limit)
 

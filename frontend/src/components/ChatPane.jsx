@@ -753,7 +753,7 @@ export default function ChatPane({
                 isStreaming
                   ? 'Generating response...'
                   : isSaving
-                  ? 'Saving to SQLite...'
+                  ? 'Saving to MongoDB...'
                   : selectedImage
                   ? 'Ask a question about this image...'
                   : 'Reply to NIM Studio...'

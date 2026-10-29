@@ -136,10 +136,10 @@ export default function Sidebar({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1.5 text-zinc-300">
             <Database className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="font-medium text-xs">SQLite Storage</span>
+            <span className="font-medium text-xs">MongoDB Cloud</span>
           </div>
           <span className="text-[10px] font-mono bg-zinc-800/90 border border-zinc-700/60 px-1.5 py-0.5 rounded text-zinc-300 font-medium">
-            nim.db
+            Atlas
           </span>
         </div>
         <div className="flex items-center justify-between text-[10.5px] text-zinc-400 font-mono">

@@ -1,91 +1,131 @@
-from datetime import datetime
-from sqlalchemy import (
-    Column,
-    String,
-    Integer,
-    DateTime,
-    Text,
-    ForeignKey,
-    Index,
-    CheckConstraint,
-    func,
-)
-from sqlalchemy.orm import declarative_base, relationship
-
-Base = declarative_base()
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Optional, Dict
 
 
-class Conversation(Base):
-    __tablename__ = "conversations"
+class ColumnAttr:
+    """Descriptor allowing class-level attributes to support .asc(), .desc() for queries
 
-    id = Column(String(36), primary_key=True)
-    title = Column(Text, nullable=False, default="New chat")
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    while delegating to instance dict when accessed on an instance.
+    """
 
-    messages = relationship(
-        "Message",
-        back_populates="conversation",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-    )
+    def __init__(self, name: str):
+        self.name = name
 
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return instance.get(self.name)
 
-class Message(Base):
-    __tablename__ = "messages"
+    def __set__(self, instance, value):
+        instance[self.name] = value
 
-    id = Column(String(36), primary_key=True)
-    conversation_id = Column(
-        String(36),
-        ForeignKey("conversations.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    role = Column(String(32), nullable=False)
-    content = Column(Text, nullable=False)
-    image_url = Column(Text, nullable=True)
-    model_slug = Column(Text, nullable=True)
-    latency_ms = Column(Integer, nullable=True)
-    fallback_count = Column(Integer, nullable=True, default=0)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    def asc(self):
+        return self.name
 
-    conversation = relationship("Conversation", back_populates="messages")
-    routing_logs = relationship(
-        "RoutingLog",
-        back_populates="message",
-        passive_deletes=True,
-    )
+    def desc(self):
+        return f"-{self.name}"
 
-    __table_args__ = (
-        Index("ix_messages_conversation_id_created_at", "conversation_id", "created_at"),
-        CheckConstraint("role IN ('user', 'assistant', 'system')", name="ck_messages_role"),
-    )
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+    def __eq__(self, other):
+        return (self.name, other)
+
+    def __ne__(self, other):
+        return (self.name, "$ne", other)
+
+    def __gt__(self, other):
+        return (self.name, "$gt", other)
+
+    def isnot(self, other):
+        return (self.name, "$ne", other)
 
 
-class RoutingLog(Base):
-    __tablename__ = "routing_logs"
+class MongoDoc(dict):
+    """Dict subclass providing attribute-style and dict-style access for MongoDB documents."""
 
-    id = Column(String(36), primary_key=True)
-    message_id = Column(
-        String(36),
-        ForeignKey("messages.id", ondelete="SET NULL"),
-        nullable=True,
-    )
-    conversation_id = Column(String(36), nullable=True)
-    model_slug = Column(Text, nullable=False)
-    tier = Column(Text, nullable=False)
-    status = Column(Text, nullable=False)
-    error = Column(Text, nullable=True)
-    latency_ms = Column(Integer, nullable=True)
-    attempt_num = Column(Integer, nullable=False)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], dict):
+            super().__init__(args[0])
+            self.update(kwargs)
+        else:
+            super().__init__(*args, **kwargs)
 
-    message = relationship("Message", back_populates="routing_logs")
+        if "_id" in self and ("id" not in self or not self.get("id")):
+            self["id"] = str(self["_id"])
+        elif "id" in self and "_id" not in self:
+            self["_id"] = str(self["id"])
 
-    __table_args__ = (
-        Index("ix_routing_logs_created_at", "created_at"),
-        Index("ix_routing_logs_model_slug_created_at", "model_slug", "created_at"),
-        CheckConstraint(
-            "status IN ('success','rate_limited','dead_model','server_error','timeout','connection_error','skipped_circuit_open')",
-            name="ck_routing_logs_status",
-        ),
-    )
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError:
+            return None
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        self[name] = value
+
+    @property
+    def id(self) -> str:
+        return str(self.get("id") or self.get("_id") or "")
+
+
+class Conversation(MongoDoc):
+    id = ColumnAttr("id")
+    title = ColumnAttr("title")
+    created_at = ColumnAttr("created_at")
+    updated_at = ColumnAttr("updated_at")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setdefault("id", str(uuid.uuid4()))
+        self.setdefault("_id", self["id"])
+        self.setdefault("title", "New chat")
+        now = datetime.now(timezone.utc).isoformat()
+        self.setdefault("created_at", now)
+        self.setdefault("updated_at", now)
+
+
+class Message(MongoDoc):
+    id = ColumnAttr("id")
+    conversation_id = ColumnAttr("conversation_id")
+    role = ColumnAttr("role")
+    content = ColumnAttr("content")
+    image_url = ColumnAttr("image_url")
+    model_slug = ColumnAttr("model_slug")
+    latency_ms = ColumnAttr("latency_ms")
+    fallback_count = ColumnAttr("fallback_count")
+    created_at = ColumnAttr("created_at")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setdefault("id", str(uuid.uuid4()))
+        self.setdefault("_id", self["id"])
+        self.setdefault("role", "user")
+        self.setdefault("content", "")
+        self.setdefault("fallback_count", 0)
+        self.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+
+
+class RoutingLog(MongoDoc):
+    id = ColumnAttr("id")
+    message_id = ColumnAttr("message_id")
+    conversation_id = ColumnAttr("conversation_id")
+    model_slug = ColumnAttr("model_slug")
+    tier = ColumnAttr("tier")
+    status = ColumnAttr("status")
+    error = ColumnAttr("error")
+    latency_ms = ColumnAttr("latency_ms")
+    attempt_num = ColumnAttr("attempt_num")
+    created_at = ColumnAttr("created_at")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setdefault("id", str(uuid.uuid4()))
+        self.setdefault("_id", self["id"])
+        self.setdefault("attempt_num", 1)
+        self.setdefault("created_at", datetime.now(timezone.utc).isoformat())
