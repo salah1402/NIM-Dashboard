@@ -1,5 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { AlertTriangle, Copy, Check } from 'lucide-react';
 
 const cleanContent = (content) => {
   if (!content) return '';
@@ -10,6 +12,48 @@ const cleanContent = (content) => {
     .replace(/[\r\n]+$/, '')
     .trim();
 };
+
+function CodeBlock({ language, value }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative my-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 text-slate-100 font-mono text-xs shadow-md not-prose">
+      <div className="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] text-slate-400">
+        <span className="font-sans font-medium uppercase tracking-wider text-slate-300">
+          {language || 'code'}
+        </span>
+        <button
+          onClick={handleCopy}
+          type="button"
+          className="flex items-center space-x-1.5 hover:text-white transition-colors text-slate-400 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700/80 cursor-pointer"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-emerald-400 font-medium">Copied</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5 text-slate-400" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      <div className="p-3.5 overflow-x-auto font-mono text-xs leading-relaxed text-slate-200">
+        <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono">
+          <code>{value}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
 
 export default function ChatPane({
   conversation,
@@ -150,13 +194,48 @@ export default function ChatPane({
                   </div>
                 ) : (
                   <div
-                    className={`max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words ${
+                    className={`max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm break-words ${
                       isUser
-                        ? 'bg-slate-900 text-white rounded-br-none'
+                        ? 'bg-slate-900 text-white rounded-br-none whitespace-pre-wrap'
                         : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
                     }`}
                   >
-                    {cleaned || (
+                    {isUser ? (
+                      cleaned
+                    ) : cleaned ? (
+                      <div className="prose prose-slate prose-sm max-w-none text-slate-800 leading-relaxed">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            pre({ children }) {
+                              return <>{children}</>;
+                            },
+                            code({ node, inline, className, children, ...props }) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              const isCodeBlock = !inline && (match || String(children).includes('\n'));
+                              if (isCodeBlock) {
+                                return (
+                                  <CodeBlock
+                                    language={match ? match[1] : ''}
+                                    value={String(children).replace(/\n$/, '')}
+                                  />
+                                );
+                              }
+                              return (
+                                <code
+                                  className="bg-slate-100 text-slate-800 text-xs px-1.5 py-0.5 rounded font-mono font-medium border border-slate-200/60"
+                                  {...props}
+                                >
+                                  {children}
+                                </code>
+                              );
+                            },
+                          }}
+                        >
+                          {cleaned}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
                       <div className="flex items-center space-x-1 py-1 text-slate-400">
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"></span>
                         <span
