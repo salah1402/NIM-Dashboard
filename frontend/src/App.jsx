@@ -111,9 +111,10 @@ export default function App() {
     }
   };
 
-  const handleSendMessage = async (e) => {
-    if (e) e.preventDefault();
-    const trimmed = input.trim();
+  const handleSendMessage = async (e, customText = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const textToSend = typeof customText === 'string' ? customText : (typeof e === 'string' ? e : input);
+    const trimmed = textToSend.trim();
     if (!trimmed || isStreaming || isSaving) return;
 
     const userMsgId = 'temp-user-' + Date.now();
