@@ -13,6 +13,7 @@ import {
   Sparkles,
   ChevronDown,
   X,
+  ExternalLink,
 } from 'lucide-react';
 
 const cleanContent = (content) => {
@@ -25,7 +26,7 @@ const cleanContent = (content) => {
     .trim();
 };
 
-function CodeBlock({ language, value }) {
+function CodeBlock({ language, value, onOpenArtifact }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -34,29 +35,52 @@ function CodeBlock({ language, value }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const normLang = (language || '').toLowerCase().trim();
+  const isArtifact =
+    ['html', 'css', 'javascript', 'js', 'jsx', 'htm'].includes(normLang) ||
+    value.includes('<!DOCTYPE') ||
+    value.includes('<!doctype') ||
+    value.includes('<html') ||
+    value.includes('<button') ||
+    value.includes('<script') ||
+    value.includes('<style');
+
   return (
     <div className="relative my-4 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 text-stone-100 font-mono text-xs shadow-md not-prose">
       <div className="flex items-center justify-between px-3.5 py-1.5 bg-stone-900 border-b border-stone-800 text-[11px] text-stone-400">
         <span className="font-sans font-medium uppercase tracking-wider text-stone-300">
           {language || 'code'}
         </span>
-        <button
-          onClick={handleCopy}
-          type="button"
-          className="flex items-center space-x-1.5 hover:text-white transition-colors text-stone-400 px-2 py-0.5 rounded bg-stone-800 hover:bg-stone-700 cursor-pointer"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400 font-medium">Copied</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5 text-stone-400" />
-              <span>Copy</span>
-            </>
+        <div className="flex items-center space-x-2">
+          {isArtifact && onOpenArtifact && (
+            <button
+              onClick={() => onOpenArtifact(value, language)}
+              type="button"
+              className="flex items-center space-x-1.5 text-stone-300 hover:text-white bg-stone-800 hover:bg-[#C96442] border border-stone-700 hover:border-[#C96442] px-2 py-0.5 rounded font-sans text-[11px] font-medium transition cursor-pointer shadow-xs group"
+              title="Open in Live Artifact Preview"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-[#C96442] group-hover:text-white" />
+              <span>Open in Artifact</span>
+            </button>
           )}
-        </button>
+          <button
+            onClick={handleCopy}
+            type="button"
+            className="flex items-center space-x-1.5 hover:text-white transition-colors text-stone-400 px-2 py-0.5 rounded bg-stone-800 hover:bg-stone-700 cursor-pointer"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400 font-medium">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-stone-400" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
       <div className="p-3.5 overflow-x-auto font-mono text-xs leading-relaxed text-stone-200">
         <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono">
@@ -144,6 +168,7 @@ export default function ChatPane({
   isStreaming,
   isSaving,
   onSendMessage,
+  onOpenArtifact,
 }) {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -379,6 +404,7 @@ export default function ChatPane({
                                   <CodeBlock
                                     language={match ? match[1] : ''}
                                     value={String(children).replace(/\n$/, '')}
+                                    onOpenArtifact={onOpenArtifact}
                                   />
                                 );
                               }

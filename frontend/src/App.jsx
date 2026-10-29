@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatPane from './components/ChatPane';
+import ArtifactPane from './components/ArtifactPane';
 import DashboardView from './components/DashboardView';
 import {
   fetchConversations,
@@ -22,6 +23,18 @@ export default function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [backendHealth, setBackendHealth] = useState('checking');
+  const [activeArtifact, setActiveArtifact] = useState(null);
+  const [isArtifactOpen, setIsArtifactOpen] = useState(false);
+
+  const handleOpenArtifact = (code) => {
+    setActiveArtifact(code);
+    setIsArtifactOpen(true);
+  };
+
+  const handleCloseArtifact = () => {
+    setIsArtifactOpen(false);
+    setActiveArtifact(null);
+  };
 
   // Load conversation list and optionally select one
   const loadConversations = useCallback(async (selectId = null) => {
@@ -83,6 +96,7 @@ export default function App() {
   }, []);
 
   const handleNewChat = async () => {
+    handleCloseArtifact();
     try {
       const newConv = await createConversation('New chat');
       setConversations((prev) => [newConv, ...prev]);
@@ -290,26 +304,42 @@ export default function App() {
       </header>
 
       {/* Main Container: Chat vs Dashboard with state preserved */}
-      <div className={view === 'chat' ? 'flex flex-1 overflow-hidden' : 'hidden'}>
+      <div className={view === 'chat' ? 'flex flex-1 overflow-hidden relative' : 'hidden'}>
         <Sidebar
           conversations={conversations}
           activeId={activeId}
-          onSelectConversation={(id) => setActiveId(id)}
+          onSelectConversation={(id) => {
+            setActiveId(id);
+            handleCloseArtifact();
+          }}
           onNewChat={handleNewChat}
           onDeleteConversation={handleDeleteConversation}
           isLoading={isLoadingList}
         />
-        <ChatPane
-          conversation={activeConversation}
-          messages={messages}
-          input={input}
-          setInput={setInput}
-          mode={mode}
-          setMode={setMode}
-          isStreaming={isStreaming}
-          isSaving={isSaving}
-          onSendMessage={handleSendMessage}
-        />
+        <div className="flex-1 flex overflow-hidden">
+          <div className={`${isArtifactOpen ? 'w-1/2' : 'w-full'} flex flex-col h-full transition-all duration-300`}>
+            <ChatPane
+              conversation={activeConversation}
+              messages={messages}
+              input={input}
+              setInput={setInput}
+              mode={mode}
+              setMode={setMode}
+              isStreaming={isStreaming}
+              isSaving={isSaving}
+              onSendMessage={handleSendMessage}
+              onOpenArtifact={handleOpenArtifact}
+            />
+          </div>
+          {isArtifactOpen && (
+            <div className="w-1/2 h-full border-l border-[#E5E3DE] transition-all duration-300 flex flex-col">
+              <ArtifactPane
+                artifact={activeArtifact}
+                onClose={handleCloseArtifact}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={view === 'dashboard' ? 'flex flex-1 overflow-hidden' : 'hidden'}>
