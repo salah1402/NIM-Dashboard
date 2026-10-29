@@ -53,9 +53,9 @@ class RoutingOutcome:
 
 
 TIER_TIMEOUTS = {
-    "tier1": 5,
-    "tier2": 15,
-    "tier3": 30,
+    "tier1": 45,
+    "tier2": 90,
+    "tier3": 120,
 }
 
 
@@ -130,9 +130,9 @@ class FallbackRouter:
         m = (mode or "auto").lower().strip()
         if m == "fastest":
             tier_order = ["tier1", "tier2", "tier3"]
-        elif m == "power":
+        elif m in ("power", "balanced"):
             tier_order = ["tier2", "tier3", "tier1"]
-        elif m == "deep":
+        elif m in ("deep", "highest_capability"):
             tier_order = ["tier3", "tier2", "tier1"]
         else:  # auto
             last_user_text = ""
@@ -178,7 +178,7 @@ class FallbackRouter:
                 )
                 continue
 
-            # Tier-based timeout: Tier 1 = 5s, Tier 2 = 12s, Tier 3 = 30s
+            # Tier-based timeout: Tier 1 = 45s, Tier 2 = 90s, Tier 3 = 120s
             candidate_timeout = timeout_s if timeout_s is not None else TIER_TIMEOUTS.get(tier, 12)
 
             # 2b. Attempt completion with wall-clock guard

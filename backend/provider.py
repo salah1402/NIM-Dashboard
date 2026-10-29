@@ -60,7 +60,7 @@ class RealProvider(LLMProvider):
             base_url=self.base_url,
             api_key=self.api_key,
             max_retries=0,  # CRITICAL: router owns retries, not the SDK
-            timeout=self.timeout_s or 30.0,
+            timeout=self.timeout_s or 180.0,
         )
 
     def complete(

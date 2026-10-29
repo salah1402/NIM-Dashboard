@@ -276,14 +276,13 @@ export default function ChatPane({
               disabled={isStreaming || isSaving}
               className="bg-white border border-slate-300 text-slate-800 font-medium rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-slate-500 cursor-pointer disabled:opacity-50"
             >
-              <option value="auto">⚡ Auto (Smart Complexity Classifier)</option>
-              <option value="fastest">🚀 Fastest (Tier 1 Priority)</option>
-              <option value="power">💪 Power (Tier 2 Priority)</option>
-              <option value="deep">🧠 Deep (Tier 3 Reasoning)</option>
+              <option value="auto">Auto (Highest Capability)</option>
+              <option value="deep">Deep Reasoning (Tier 3)</option>
+              <option value="balanced">Balanced (Tier 2)</option>
             </select>
           </div>
           <span className="text-[11px] text-slate-500 hidden sm:inline">
-            Tiered timeout cascade (5s / 12s / 30s)
+            Top-Tier Models Only | 120s Max Timeout
           </span>
         </div>
         <form
