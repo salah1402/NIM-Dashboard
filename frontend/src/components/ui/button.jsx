@@ -3,24 +3,24 @@ import { cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer",
   {
     variants: {
       variant: {
         default:
-          "bg-[#191918] text-white hover:bg-black shadow-xs active:scale-[0.98]",
+          "bg-zinc-100 text-zinc-900 hover:bg-white shadow-xs active:scale-[0.98]",
         primary:
-          "bg-[#C96442] text-white hover:bg-[#B35536] shadow-xs active:scale-[0.98]",
+          "bg-[#C96442] text-white hover:bg-[#D97352] shadow-xs active:scale-[0.98]",
         secondary:
-          "bg-white text-[#191918] border border-[#E5E3DE] hover:bg-[#F0EFEA] hover:border-stone-400 shadow-xs active:scale-[0.98]",
+          "bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:bg-zinc-700/80 hover:text-white shadow-xs active:scale-[0.98]",
         ghost:
-          "text-stone-600 hover:text-[#191918] hover:bg-[#F0EFEA] active:scale-[0.98]",
+          "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 active:scale-[0.98]",
         outline:
-          "border border-[#E5E3DE] bg-transparent hover:bg-[#F0EFEA] text-[#191918]",
+          "border border-zinc-800 bg-transparent hover:bg-zinc-800/60 text-zinc-300 hover:text-white",
         subtle:
-          "bg-[#F0EFEA] text-stone-700 hover:bg-[#E5E3DE] hover:text-[#191918]",
+          "bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700/70 hover:text-white",
         destructive:
-          "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100",
+          "bg-rose-950/60 text-rose-300 border border-rose-800/60 hover:bg-rose-900/60",
       },
       size: {
         default: "h-9 px-3.5 py-2",

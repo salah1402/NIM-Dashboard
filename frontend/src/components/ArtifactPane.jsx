@@ -61,9 +61,9 @@ export default function ArtifactPane({ artifact, onClose }) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#F9F9F8] text-[#1D1B1B] select-none border-l border-[#E5E3DE]">
+    <div className="flex flex-col h-full bg-[#09090b] text-zinc-100 select-none border-l border-zinc-800">
       {/* Top macOS-style / Luxury Browser Chrome Header */}
-      <div className="h-13 border-b border-[#E5E3DE] bg-[#F9F9F8] px-4 flex items-center justify-between shrink-0 gap-3">
+      <div className="h-13 border-b border-zinc-800 bg-[#0c0c0e] px-4 flex items-center justify-between shrink-0 gap-3">
         {/* Left: Window Controls & Title */}
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-1.5">
@@ -71,33 +71,33 @@ export default function ArtifactPane({ artifact, onClose }) {
             <span className="w-2.5 h-2.5 rounded-full bg-[#EAB308]/80 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]/80 inline-block" />
           </div>
-          <div className="h-3.5 w-px bg-[#E5E3DE]" />
+          <div className="h-3.5 w-px bg-zinc-800" />
           <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 rounded-md bg-[#C96442]/10 border border-[#C96442]/30 flex items-center justify-center text-[#C96442]">
+            <div className="w-5 h-5 rounded-md bg-[#C96442]/15 border border-[#C96442]/30 flex items-center justify-center text-[#E07A5A]">
               <Sparkles className="w-3 h-3" />
             </div>
-            <span className="font-semibold text-xs text-[#1D1B1B]">Live Artifact</span>
+            <span className="font-semibold text-xs text-zinc-100">Live Artifact</span>
             <Badge variant="terracotta" className="text-[10px] py-0 px-1.5">Sandbox</Badge>
           </div>
         </div>
 
         {/* Center: Fake Browser Address Capsule */}
-        <div className="hidden md:flex items-center space-x-1.5 px-3 py-1 bg-white border border-[#E5E3DE] rounded-full text-[11px] text-stone-500 shadow-xs max-w-xs truncate">
-          <Globe className="w-3 h-3 text-[#C96442]" />
-          <span className="font-mono text-[10px] text-stone-700">canvas://live-preview.html</span>
+        <div className="hidden md:flex items-center space-x-1.5 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[11px] text-zinc-400 shadow-xs max-w-xs truncate">
+          <Globe className="w-3 h-3 text-[#E07A5A]" />
+          <span className="font-mono text-[10px] text-zinc-300">canvas://live-preview.html</span>
         </div>
 
         {/* Right: View Toggle, Reload, Download, Close */}
         <div className="flex items-center space-x-2">
           {/* View Switcher Toggle */}
-          <div className="flex items-center bg-[#F0EFEA] p-0.5 rounded-lg border border-[#E5E3DE] text-xs">
+          <div className="flex items-center bg-zinc-900 p-0.5 rounded-lg border border-zinc-800 text-xs">
             <button
               type="button"
               onClick={() => setViewMode('preview')}
               className={`flex items-center space-x-1 px-2.5 py-1 rounded-md transition cursor-pointer text-xs font-medium ${
                 viewMode === 'preview'
-                  ? 'bg-white text-[#1D1B1B] shadow-xs'
-                  : 'text-stone-500 hover:text-[#1D1B1B]'
+                  ? 'bg-zinc-800 text-zinc-100 shadow-xs'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               <Eye className="w-3.5 h-3.5" />
@@ -108,8 +108,8 @@ export default function ArtifactPane({ artifact, onClose }) {
               onClick={() => setViewMode('code')}
               className={`flex items-center space-x-1 px-2.5 py-1 rounded-md transition cursor-pointer text-xs font-medium ${
                 viewMode === 'code'
-                  ? 'bg-white text-[#1D1B1B] shadow-xs'
-                  : 'text-stone-500 hover:text-[#1D1B1B]'
+                  ? 'bg-zinc-800 text-zinc-100 shadow-xs'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               <Code className="w-3.5 h-3.5" />
@@ -117,7 +117,7 @@ export default function ArtifactPane({ artifact, onClose }) {
             </button>
           </div>
 
-          <div className="h-3.5 w-px bg-[#E5E3DE]" />
+          <div className="h-3.5 w-px bg-zinc-800" />
 
           {/* Reload Preview */}
           {viewMode === 'preview' && (
@@ -125,7 +125,7 @@ export default function ArtifactPane({ artifact, onClose }) {
               type="button"
               onClick={handleReload}
               title="Reload Preview"
-              className="p-1.5 text-stone-500 hover:text-[#1D1B1B] hover:bg-[#F0EFEA] rounded-lg transition cursor-pointer"
+              className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
             >
               <RotateCw className="w-3.5 h-3.5" />
             </button>
@@ -136,7 +136,7 @@ export default function ArtifactPane({ artifact, onClose }) {
             type="button"
             onClick={handleDownload}
             title="Download HTML"
-            className="p-1.5 text-stone-500 hover:text-[#1D1B1B] hover:bg-[#F0EFEA] rounded-lg transition cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
           </button>
@@ -146,7 +146,7 @@ export default function ArtifactPane({ artifact, onClose }) {
             type="button"
             onClick={onClose}
             title="Close Artifact Pane (Esc)"
-            className="p-1.5 text-stone-500 hover:text-[#1D1B1B] hover:bg-[#F0EFEA] rounded-lg transition cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -154,7 +154,7 @@ export default function ArtifactPane({ artifact, onClose }) {
       </div>
 
       {/* Artifact Content Area */}
-      <div className="flex-1 overflow-hidden relative bg-white">
+      <div className="flex-1 overflow-hidden relative bg-zinc-950">
         {viewMode === 'preview' ? (
           <iframe
             key={iframeKey}
@@ -164,13 +164,13 @@ export default function ArtifactPane({ artifact, onClose }) {
             className="w-full h-full border-0 bg-white"
           />
         ) : (
-          <div className="w-full h-full bg-[#18181B] text-stone-200 overflow-auto p-4 font-mono text-xs leading-relaxed">
-            <div className="flex items-center justify-between pb-2 mb-3 border-b border-stone-800 text-[11px] text-stone-400">
-              <span className="uppercase tracking-wider font-semibold text-stone-300">Raw Component Code</span>
+          <div className="w-full h-full bg-[#09090b] text-zinc-200 overflow-auto p-4 font-mono text-xs leading-relaxed">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-800 text-[11px] text-zinc-400">
+              <span className="uppercase tracking-wider font-semibold text-zinc-300">Raw Component Code</span>
               <button
                 type="button"
                 onClick={handleCopyCode}
-                className="flex items-center space-x-1 px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white transition cursor-pointer text-xs"
+                className="flex items-center space-x-1 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white transition cursor-pointer text-xs"
               >
                 {copied ? (
                   <>
@@ -185,7 +185,7 @@ export default function ArtifactPane({ artifact, onClose }) {
                 )}
               </button>
             </div>
-            <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-stone-200 whitespace-pre-wrap selection:bg-[#C96442]/30">
+            <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-zinc-200 whitespace-pre-wrap selection:bg-[#C96442]/30">
               <code>{artifact}</code>
             </pre>
           </div>

@@ -188,10 +188,6 @@ class FallbackRouter:
                 candidates,
                 key=lambda c: 0 if c[0] == nemotron_vision_slug else (1 if is_vision_model(c[0]) else 2),
             )
-        else:
-            # If an image is NOT present, Nemotron is completely ignored in the cascade
-            if force_model is None:
-                candidates = [c for c in candidates if "nemotron" not in c[0].lower()]
 
         attempts: List[AttemptLog] = []
 

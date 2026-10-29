@@ -292,35 +292,35 @@ export default function App() {
   const activeConversation = conversations.find((c) => c.id === activeId);
 
   return (
-    <div className="flex flex-col h-screen bg-[#F9F9F8] text-[#191918] overflow-hidden font-sans">
-      {/* Top Header - $50k Luxury Studio Styling */}
-      <header className="border-b border-[#E5E3DE] bg-[#F9F9F8]/90 backdrop-blur-md px-6 py-2.5 flex items-center justify-between z-20 shrink-0">
+    <div className="flex flex-col h-screen bg-[#09090b] text-zinc-100 overflow-hidden font-sans">
+      {/* Top Header - shadcn Matte Dark Styling */}
+      <header className="border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md px-6 py-2.5 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center space-x-3.5">
-          <div className="w-8 h-8 rounded-xl bg-white border border-[#E5E3DE] flex items-center justify-center shadow-xs">
+          <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-xs">
             <ClaudeLogo className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-sm font-semibold tracking-tight text-[#191918]">NIM Studio</h1>
-              <span className="text-[10px] font-mono uppercase bg-[#C96442]/10 text-[#C96442] border border-[#C96442]/30 px-2 py-0.5 rounded-full font-semibold">
+              <h1 className="text-sm font-semibold tracking-tight text-zinc-100">NIM Studio</h1>
+              <span className="text-[10px] font-mono uppercase bg-[#C96442]/15 text-[#E07A5A] border border-[#C96442]/30 px-2 py-0.5 rounded-full font-semibold">
                 God Mode
               </span>
             </div>
-            <p className="text-[11px] text-stone-500 font-sans tracking-tight">
+            <p className="text-[11px] text-zinc-400 font-sans tracking-tight">
               Flagship Autonomous AI Agent & Cascade Router
             </p>
           </div>
         </div>
 
         {/* View Switcher Toggle */}
-        <div className="flex items-center bg-[#F0EFEA] p-1 rounded-xl border border-[#E5E3DE] shadow-xs">
+        <div className="flex items-center bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 shadow-xs">
           <button
             type="button"
             onClick={() => setView('chat')}
             className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'chat'
-                ? 'bg-white text-[#191918] font-semibold shadow-xs'
-                : 'text-stone-500 hover:text-[#191918] hover:bg-stone-200/40'
+                ? 'bg-zinc-800 text-zinc-100 font-semibold shadow-xs'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
             }`}
           >
             <span>💬 Chat & Agent</span>
@@ -330,8 +330,8 @@ export default function App() {
             onClick={() => setView('dashboard')}
             className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'dashboard'
-                ? 'bg-white text-[#191918] font-semibold shadow-xs'
-                : 'text-stone-500 hover:text-[#191918] hover:bg-stone-200/40'
+                ? 'bg-zinc-800 text-zinc-100 font-semibold shadow-xs'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
             }`}
           >
             <span>📊 Analytics & DB</span>
@@ -340,19 +340,19 @@ export default function App() {
 
         {/* Telemetry Status Badges */}
         <div className="flex items-center space-x-2.5 text-xs font-mono">
-          <div className="hidden sm:flex items-center space-x-1.5 bg-white px-3 py-1.5 rounded-xl border border-[#E5E3DE] text-stone-600 shadow-xs">
-            <span className="text-stone-400">Rate Limit:</span>
-            <span className="text-emerald-700 font-semibold">40 RPM / Slug</span>
+          <div className="hidden sm:flex items-center space-x-1.5 bg-zinc-900/90 px-3 py-1.5 rounded-xl border border-zinc-800 text-zinc-300 shadow-xs">
+            <span className="text-zinc-500">Rate Limit:</span>
+            <span className="text-emerald-400 font-semibold">40 RPM / Slug</span>
           </div>
-          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-[#E5E3DE] shadow-xs">
+          <div className="flex items-center space-x-2 bg-zinc-900/90 px-3 py-1.5 rounded-xl border border-zinc-800 shadow-xs">
             <span
               className={`w-2 h-2 rounded-full ${
                 backendHealth === 'connected'
-                  ? 'bg-emerald-500 animate-pulse'
+                  ? 'bg-emerald-400 animate-pulse'
                   : 'bg-rose-500'
               }`}
             />
-            <span className="text-stone-700 font-medium">
+            <span className="text-zinc-300 font-medium">
               API: {backendHealth === 'connected' ? '8000 OK' : backendHealth}
             </span>
           </div>

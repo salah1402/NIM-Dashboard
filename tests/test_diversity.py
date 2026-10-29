@@ -5,17 +5,13 @@ from backend.provider import MockProvider
 from backend.main import MessageOut
 
 
-def test_nemotron_banned_on_text_routes():
+def test_non_nemotron_prioritized_in_tier1():
     mock_prov = MockProvider()
     breaker = CircuitBreaker()
     tiers = {
-        "tier1": ["mistralai/mistral-large-2-instruct"],
-        "tier2": [
-            "qwen/qwen2.5-7b-instruct",
-            "nvidia/nemotron-3.5-super-vl-120b-a12b",
-            "openai/gpt-oss-20b",
-        ],
-        "tier3": ["deepseek-ai/deepseek-v4.1-flash"],
+        "tier1": ["openai/gpt-oss-20b", "mistralai/mistral-large-2-instruct"],
+        "tier2": ["moonshotai/kimi-k2.6", "qwen/qwen2.5-72b-instruct"],
+        "tier3": ["nvidia/nemotron-3.5-super-vl-120b-a12b", "deepseek-ai/deepseek-v4.1-flash"],
     }
     router = FallbackRouter(
         provider=mock_prov,
@@ -24,15 +20,14 @@ def test_nemotron_banned_on_text_routes():
         exclude=set(),
     )
 
-    # Text-only route should NOT have nemotron in candidates or attempted
+    # Simple text prompt routes to Tier 1 first (GPT-OSS), NOT Nemotron
     outcome = router.route(
-        messages=[{"role": "user", "content": "Tell me a joke about routing"}],
-        mode="balanced",
+        messages=[{"role": "user", "content": "hi"}],
+        mode="auto",
     )
-    attempted_slugs = [a.model_slug for a in outcome.attempts]
-    for s in attempted_slugs:
-        assert "nemotron" not in s.lower()
-    assert "nemotron" not in outcome.model_slug.lower()
+    assert outcome.model_slug == "openai/gpt-oss-20b"
+    assert outcome.tier == "tier1"
+    assert outcome.attempts[0].model_slug == "openai/gpt-oss-20b"
 
 
 def test_nemotron_injected_at_front_for_vision():

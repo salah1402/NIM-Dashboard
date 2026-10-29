@@ -1,15 +1,13 @@
 tier1:
+  - openai/gpt-oss-20b
   - mistralai/mistral-large-2-instruct
-  - microsoft/phi-3-medium-128k-instruct
-  - google/gemma-2-27b-it
 
 tier2:
-  - qwen/qwen2.5-7b-instruct
-  - 01-ai/yi-large
-  - openai/gpt-oss-20b
+  - moonshotai/kimi-k2.6
+  - qwen/qwen2.5-72b-instruct
 
 tier3:
-  - moonshotai/kimi-k2.6
+  - nvidia/nemotron-3.5-super-vl-120b-a12b
   - deepseek-ai/deepseek-v4.1-flash
 
 exclude:

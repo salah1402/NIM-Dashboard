@@ -3,24 +3,24 @@ import { cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md border px-2 py-0.5 text-[10.5px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 font-mono",
+  "inline-flex items-center rounded-md border px-2 py-0.5 text-[10.5px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 font-mono",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-[#191918] text-white",
+          "border-transparent bg-zinc-800 text-zinc-200",
         secondary:
-          "border-[#E5E3DE] bg-[#F0EFEA] text-stone-700",
+          "border-zinc-800 bg-zinc-900/80 text-zinc-400",
         outline:
-          "border-[#E5E3DE] text-stone-700 bg-white",
+          "border-zinc-800 text-zinc-300 bg-transparent",
         success:
-          "border-emerald-200 bg-emerald-50 text-emerald-800",
+          "border-emerald-800/60 bg-emerald-950/60 text-emerald-400",
         warning:
-          "border-amber-200 bg-amber-50 text-amber-800",
+          "border-amber-800/60 bg-amber-950/60 text-amber-400",
         danger:
-          "border-rose-200 bg-rose-50 text-rose-800",
+          "border-rose-800/60 bg-rose-950/60 text-rose-400",
         terracotta:
-          "border-[#C96442]/30 bg-[#C96442]/10 text-[#C96442]",
+          "border-[#C96442]/40 bg-[#C96442]/15 text-[#E07A5A]",
       },
     },
     defaultVariants: {

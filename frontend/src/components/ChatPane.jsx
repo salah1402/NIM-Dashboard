@@ -321,19 +321,19 @@ export default function ChatPane({
   const currentModeObj = modes.find((m) => m.id === mode) || modes[0];
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#F9F9F8] text-[#191918] overflow-hidden select-text">
+    <div className="flex-1 flex flex-col h-full bg-[#09090b] text-zinc-100 overflow-hidden select-text font-sans">
       {/* Messages Scroll Area */}
       <div className={`flex-1 overflow-y-auto px-4 py-8 ${isArtifactOpen ? 'max-w-2xl' : 'max-w-3xl'} w-full mx-auto space-y-6 transition-all duration-300`}>
         {messages.length === 0 ? (
           /* Empty / Welcome Hero Canvas */
           <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12">
-            <div className="w-14 h-14 rounded-2xl bg-white border border-[#E5E3DE] flex items-center justify-center shadow-xs mb-5">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-xs mb-5">
               <ClaudeFlower className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-normal text-[#191918] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-serif font-normal text-zinc-100 tracking-tight">
               {conversation ? conversation.title : 'What would you like to build or explore today?'}
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 max-w-md mt-2.5 mb-8 font-sans">
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-md mt-2.5 mb-8 font-sans">
               Autonomous Python agent and live Artifact rendering powered by NVIDIA NIM flagship cascade routing.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl text-left">
@@ -365,16 +365,16 @@ export default function ChatPane({
                     setInput(item.prompt);
                     textareaRef.current?.focus();
                   }}
-                  className="p-3.5 text-xs text-[#191918] bg-white hover:bg-[#F4F3EE] border border-[#E5E3DE] hover:border-stone-400 rounded-xl shadow-xs transition-all text-left cursor-pointer group flex flex-col justify-between"
+                  className="p-3.5 text-xs text-zinc-200 bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800 hover:border-zinc-700 rounded-xl shadow-xs transition-all text-left cursor-pointer group flex flex-col justify-between"
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] uppercase font-mono font-semibold text-[#C96442] bg-[#C96442]/10 px-2 py-0.5 rounded">
+                    <span className="text-[10px] uppercase font-mono font-semibold text-[#E07A5A] bg-[#C96442]/15 px-2 py-0.5 rounded border border-[#C96442]/30">
                       {item.tag}
                     </span>
-                    <Sparkles className="w-3.5 h-3.5 text-stone-300 group-hover:text-[#C96442] transition-colors" />
+                    <Sparkles className="w-3.5 h-3.5 text-zinc-500 group-hover:text-[#C96442] transition-colors" />
                   </div>
-                  <div className="font-semibold text-stone-800 text-xs mb-1">{item.title}</div>
-                  <div className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
+                  <div className="font-semibold text-zinc-200 text-xs mb-1">{item.title}</div>
+                  <div className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
                     "{item.prompt}"
                   </div>
                 </button>
@@ -449,22 +449,22 @@ export default function ChatPane({
 
                 {/* Assistant Message Header: Model / Latency badge with Fallback struggle */}
                 {!isUser && msg.model_slug && (
-                  <div className="flex items-center space-x-2 mb-2 px-0.5 text-[11px] text-stone-500 font-sans">
+                  <div className="flex items-center space-x-2 mb-2 px-0.5 text-[11px] text-zinc-400 font-sans">
                     <div
                       className={`inline-flex items-center font-mono px-2 py-0.5 rounded-md font-medium text-[11px] transition-colors ${
                         isFailed
-                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          ? 'bg-rose-950/60 text-rose-300 border border-rose-800/60'
                           : fallbackCount > 0
-                          ? 'bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs'
-                          : 'bg-[#F0EFEA] text-stone-700 border border-[#E5E3DE]'
+                          ? 'bg-amber-950/60 text-amber-300 border border-amber-800/60 shadow-2xs'
+                          : 'bg-zinc-900 text-zinc-300 border border-zinc-800'
                       }`}
                       title={fallbackTooltip || undefined}
                     >
-                      {fallbackCount > 0 && <span className="mr-1 text-amber-600 font-bold">⚡</span>}
+                      {fallbackCount > 0 && <span className="mr-1 text-amber-400 font-bold">⚡</span>}
                       <span>{msg.model_slug}</span>
                       {fallbackCount > 0 && (
                         <span
-                          className="ml-1.5 text-[10.5px] text-amber-700 font-semibold cursor-help"
+                          className="ml-1.5 text-[10.5px] text-amber-400 font-semibold cursor-help"
                           title={fallbackTooltip}
                         >
                           ({fallbackCount} {fallbackCount === 1 ? 'fallback' : 'fallbacks'})
@@ -472,7 +472,7 @@ export default function ChatPane({
                       )}
                     </div>
                     {msg.latency_ms != null && (
-                      <span className="font-mono text-stone-400 text-[10.5px]">
+                      <span className="font-mono text-zinc-500 text-[10.5px]">
                         {(msg.latency_ms / 1000).toFixed(1)}s
                       </span>
                     )}
@@ -481,15 +481,15 @@ export default function ChatPane({
 
                 {/* Failed Error Bubble */}
                 {isFailed ? (
-                  <div className="max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-xs bg-rose-50 border border-rose-200 text-rose-900 flex items-start space-x-3">
-                    <div className="p-1 rounded-md bg-rose-100 text-rose-600 shrink-0 mt-0.5">
+                  <div className="max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-xs bg-rose-950/60 border border-rose-800/60 text-rose-200 flex items-start space-x-3">
+                    <div className="p-1 rounded-md bg-rose-900/60 text-rose-400 shrink-0 mt-0.5">
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                     <div className="flex-1 space-y-0.5">
-                      <div className="font-semibold text-rose-800 text-xs uppercase tracking-wider">
+                      <div className="font-semibold text-rose-300 text-xs uppercase tracking-wider">
                         Request Failed
                       </div>
-                      <div className="text-rose-700 text-xs font-normal">
+                      <div className="text-rose-200 text-xs font-normal">
                         {errorText || 'All candidate models failed in cascade.'}
                       </div>
                     </div>
@@ -497,34 +497,34 @@ export default function ChatPane({
                 ) : isUser ? (
                   /* User Message Bubble with Inline Edit Support */
                   editingMsgId === msg.id ? (
-                    <div className="w-full max-w-xl bg-white border border-stone-300 rounded-2xl p-3 shadow-sm">
+                    <div className="w-full max-w-xl bg-zinc-900 border border-zinc-700 rounded-2xl p-3 shadow-md">
                       <textarea
                         value={editPrompt}
                         onChange={(e) => setEditPrompt(e.target.value)}
                         rows={3}
-                        className="w-full text-sm text-[#191918] bg-transparent focus:outline-none resize-none leading-relaxed"
+                        className="w-full text-sm text-zinc-100 bg-transparent focus:outline-none resize-none leading-relaxed"
                       />
-                      <div className="flex items-center justify-end space-x-2 mt-2 pt-2 border-t border-stone-100 text-xs">
+                      <div className="flex items-center justify-end space-x-2 mt-2 pt-2 border-t border-zinc-800 text-xs">
                         <button
                           type="button"
                           onClick={() => setEditingMsgId(null)}
-                          className="px-3 py-1 rounded-lg text-stone-600 hover:bg-stone-100 transition cursor-pointer"
+                          className="px-3 py-1 rounded-lg text-zinc-400 hover:bg-zinc-800 transition cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={handleSaveEdit}
-                          className="px-3.5 py-1 rounded-lg bg-[#191918] hover:bg-black text-white font-medium shadow-xs transition cursor-pointer"
+                          className="px-3.5 py-1 rounded-lg bg-zinc-100 hover:bg-white text-zinc-900 font-medium shadow-xs transition cursor-pointer"
                         >
                           Save & Submit
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-[#F0EFEA] border border-[#E5E3DE]/60 text-[#191918] font-sans font-medium flex flex-col gap-2.5">
+                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-zinc-800/90 border border-zinc-700/80 text-zinc-100 font-sans font-medium flex flex-col gap-2.5">
                       {msg.image_url && (
-                        <div className="rounded-xl overflow-hidden border border-[#E5E3DE] max-w-sm max-h-72 bg-white shadow-xs">
+                        <div className="rounded-xl overflow-hidden border border-zinc-700 max-w-sm max-h-72 bg-zinc-950 shadow-xs">
                           <img
                             src={msg.image_url}
                             alt="Uploaded preview"
@@ -548,7 +548,7 @@ export default function ChatPane({
                     )}
 
                     {cleaned ? (
-                      <div className="prose prose-stone max-w-none font-serif text-[#191918] text-[15.5px] leading-[1.78] prose-headings:font-serif prose-headings:font-normal prose-headings:text-[#191918] prose-p:my-3 prose-li:my-1 prose-pre:my-3">
+                      <div className="prose prose-invert prose-zinc max-w-none font-serif text-zinc-200 text-[15.5px] leading-[1.78] prose-headings:font-serif prose-headings:font-normal prose-headings:text-zinc-100 prose-p:my-3 prose-li:my-1 prose-pre:my-3">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
@@ -569,7 +569,7 @@ export default function ChatPane({
                               }
                               return (
                                 <code
-                                  className="bg-[#F0EFEA] text-[#191918] text-xs px-1.5 py-0.5 rounded font-mono font-medium border border-[#E5E3DE]"
+                                  className="bg-zinc-800 text-zinc-200 text-xs px-1.5 py-0.5 rounded font-mono font-medium border border-zinc-700"
                                   {...props}
                                 >
                                   {children}
@@ -583,14 +583,14 @@ export default function ChatPane({
                       </div>
                     ) : (
                       /* Thinking / Streaming Indicator */
-                      <div className="flex items-center space-x-1.5 py-2 text-stone-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce"></span>
+                      <div className="flex items-center space-x-1.5 py-2 text-zinc-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce"></span>
                         <span
-                          className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce"
+                          className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce"
                           style={{ animationDelay: '0.2s' }}
                         ></span>
                         <span
-                          className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce"
+                          className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce"
                           style={{ animationDelay: '0.4s' }}
                         ></span>
                       </div>
@@ -598,17 +598,17 @@ export default function ChatPane({
 
                     {/* Assistant Message Actions (Hover to reveal) */}
                     {cleaned && !isStreaming && (
-                      <div className="flex items-center space-x-3 mt-2.5 pt-1 text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center space-x-3 mt-2.5 pt-1 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           type="button"
                           onClick={() => handleCopyAssistant(msg.id, cleaned)}
-                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-[#191918] transition cursor-pointer"
+                          className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
                           title="Copy text"
                         >
                           {copiedMessageId === msg.id ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              <span className="text-emerald-700 font-medium">Copied</span>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-emerald-400 font-medium">Copied</span>
                             </>
                           ) : (
                             <>
@@ -620,11 +620,11 @@ export default function ChatPane({
                         <button
                           type="button"
                           onClick={() => handleRegenerate(idx)}
-                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-[#191918] transition cursor-pointer"
-                          title="Regenerate response"
+                          className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                          title="Retry from here"
                         >
                           <RotateCw className="w-3.5 h-3.5" />
-                          <span>Regenerate</span>
+                          <span>Retry</span>
                         </button>
                       </div>
                     )}
@@ -645,15 +645,15 @@ export default function ChatPane({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Claude-style Luxury Floating Input Hub */}
-      <footer className="p-4 bg-gradient-to-t from-[#F9F9F8] via-[#F9F9F8] to-transparent">
+      {/* Claude-style Luxury Floating Input Hub - shadcn Matte Dark */}
+      <footer className="p-4 bg-gradient-to-t from-[#09090b] via-[#09090b]/90 to-transparent">
         <div className={`${isArtifactOpen ? 'max-w-2xl' : 'max-w-3xl'} mx-auto transition-all duration-300`}>
           {/* Main Input Box Card */}
-          <div className="relative rounded-2xl border border-stone-300 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.05)] focus-within:border-stone-400 focus-within:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all p-3">
+          <div className="relative rounded-2xl border border-zinc-800 bg-zinc-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.6)] focus-within:border-zinc-700 transition-all p-3 backdrop-blur-md">
             {/* Image Thumbnail Preview with X remove button */}
             {selectedImage && (
-              <div className="mb-2.5 relative inline-flex items-center gap-2.5 p-1.5 bg-[#F0EFEA] border border-[#E5E3DE] rounded-xl shadow-xs animate-in fade-in zoom-in-95 duration-150">
-                <div className="w-11 h-11 rounded-lg overflow-hidden bg-white border border-[#E5E3DE] shrink-0">
+              <div className="mb-2.5 relative inline-flex items-center gap-2.5 p-1.5 bg-zinc-850 border border-zinc-700 rounded-xl shadow-xs animate-in fade-in zoom-in-95 duration-150">
+                <div className="w-11 h-11 rounded-lg overflow-hidden bg-zinc-950 border border-zinc-700 shrink-0">
                   <img
                     src={selectedImage.previewUrl}
                     alt="Upload thumbnail"
@@ -661,17 +661,17 @@ export default function ChatPane({
                   />
                 </div>
                 <div className="flex flex-col text-left pr-6">
-                  <span className="text-xs font-semibold text-[#191918] max-w-[180px] truncate">
+                  <span className="text-xs font-semibold text-zinc-200 max-w-[180px] truncate">
                     {selectedImage.name}
                   </span>
-                  <span className="text-[10.5px] text-stone-500 font-mono">
+                  <span className="text-[10.5px] text-zinc-400 font-mono">
                     {selectedImage.size} • Vision Model
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedImage(null)}
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#191918] text-white hover:bg-black rounded-full flex items-center justify-center shadow-xs transition cursor-pointer"
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-zinc-700 text-zinc-200 hover:bg-zinc-600 rounded-full flex items-center justify-center shadow-xs transition cursor-pointer"
                   title="Remove image"
                 >
                   <X className="w-3 h-3" />
@@ -696,11 +696,11 @@ export default function ChatPane({
                   : 'Reply to NIM Studio...'
               }
               disabled={isStreaming || isSaving}
-              className="w-full bg-transparent text-sm text-[#191918] placeholder-stone-400 focus:outline-none resize-none leading-relaxed min-h-[44px] max-h-[160px] px-1 py-1 font-sans"
+              className="w-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none resize-none leading-relaxed min-h-[44px] max-h-[160px] px-1 py-1 font-sans"
             />
 
             {/* Input Bottom Action Bar */}
-            <div className="flex items-center justify-between pt-2 border-t border-stone-100 mt-1">
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80 mt-1">
               <div className="flex items-center space-x-1.5 relative">
                 {/* Paperclip Icon for image file uploads */}
                 <button
@@ -709,8 +709,8 @@ export default function ChatPane({
                   title="Attach image for vision analysis"
                   className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                     selectedImage
-                      ? 'text-[#C96442] bg-[#C96442]/10'
-                      : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
+                      ? 'text-[#E07A5A] bg-[#C96442]/20'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
                   }`}
                 >
                   <Paperclip className="w-4 h-4" />
@@ -729,43 +729,43 @@ export default function ChatPane({
                     type="button"
                     onClick={() => setShowToolsMenu((prev) => !prev)}
                     title="Tools & Capabilities"
-                    className="flex items-center space-x-1 p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer text-xs"
+                    className="flex items-center space-x-1 p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer text-xs"
                   >
                     <Wrench className="w-4 h-4" />
                   </button>
 
                   {/* Tools Dropdown Popover */}
                   {showToolsMenu && (
-                    <div className="absolute left-0 bottom-full mb-2 w-60 bg-white border border-stone-200 rounded-2xl shadow-xl p-2.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-                      <div className="flex items-center justify-between px-2 py-1 border-b border-stone-100 mb-1.5 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">
+                    <div className="absolute left-0 bottom-full mb-2 w-60 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-2.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-800 mb-1.5 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
                         <span>Tools & Capabilities</span>
                         <button
                           type="button"
                           onClick={() => setShowToolsMenu(false)}
-                          className="hover:text-stone-700 cursor-pointer"
+                          className="hover:text-zinc-300 cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <div className="space-y-1">
-                        <div className="px-2.5 py-2 rounded-xl text-stone-800 bg-stone-50 border border-stone-200/80 flex items-center justify-between">
+                        <div className="px-2.5 py-2 rounded-xl text-zinc-200 bg-zinc-800/60 border border-zinc-700/80 flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span className="font-semibold text-xs">Code Interpreter</span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span className="font-semibold text-xs text-zinc-200">Code Interpreter</span>
                           </div>
-                          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold">
+                          <span className="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-1.5 py-0.5 rounded font-semibold">
                             Active
                           </span>
                         </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
+                        <div className="px-2.5 py-1.5 rounded-lg text-zinc-400 hover:bg-zinc-800/60 flex items-center justify-between">
                           <span>Web Search</span>
-                          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">
                             Soon
                           </span>
                         </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
+                        <div className="px-2.5 py-1.5 rounded-lg text-zinc-400 hover:bg-zinc-800/60 flex items-center justify-between">
                           <span>File Context</span>
-                          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">
                             Soon
                           </span>
                         </div>
@@ -779,17 +779,17 @@ export default function ChatPane({
                   <button
                     type="button"
                     onClick={() => setShowModeDropdown((prev) => !prev)}
-                    className="flex items-center space-x-1.5 bg-[#F0EFEA] hover:bg-[#E5E3DE] text-stone-700 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer border border-[#E5E3DE]"
+                    className="flex items-center space-x-1.5 bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer border border-zinc-700/80"
                   >
-                    <Zap className="w-3 h-3 text-[#C96442]" />
+                    <Zap className="w-3 h-3 text-[#E07A5A]" />
                     <span>{currentModeObj.name}</span>
-                    <ChevronDown className="w-3 h-3 text-stone-400" />
+                    <ChevronDown className="w-3 h-3 text-zinc-400" />
                   </button>
 
                   {/* Mode Dropdown Popover */}
                   {showModeDropdown && (
-                    <div className="absolute left-0 bottom-full mb-2 w-72 bg-white border border-stone-200 rounded-2xl shadow-xl p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-                      <div className="px-2 py-1 text-[11px] font-semibold text-stone-400 uppercase tracking-wider border-b border-stone-100 mb-1">
+                    <div className="absolute left-0 bottom-full mb-2 w-72 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="px-2 py-1 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 mb-1">
                         Routing Strategy
                       </div>
                       <div className="space-y-1">
@@ -803,17 +803,17 @@ export default function ChatPane({
                             }}
                             className={`w-full text-left px-2.5 py-2 rounded-xl transition cursor-pointer flex flex-col space-y-0.5 ${
                               mode === m.id
-                                ? 'bg-[#F0EFEA] text-[#191918] font-semibold'
-                                : 'text-stone-600 hover:bg-stone-50'
+                                ? 'bg-zinc-800 text-zinc-100 font-semibold'
+                                : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <span className="text-xs">{m.name}</span>
-                              <span className="text-[10px] bg-stone-200/60 text-stone-600 px-1.5 py-0.5 rounded font-mono">
+                              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded font-mono border border-zinc-700/60">
                                 {m.badge}
                               </span>
                             </div>
-                            <span className="text-[11px] text-stone-400 font-normal">
+                            <span className="text-[11px] text-zinc-500 font-normal">
                               {m.description}
                             </span>
                           </button>
@@ -829,7 +829,7 @@ export default function ChatPane({
                 type="button"
                 onClick={handleSubmit}
                 disabled={(!input.trim() && !selectedImage) || isStreaming || isSaving}
-                className="w-8 h-8 rounded-xl bg-[#C96442] hover:bg-[#B35536] disabled:bg-stone-200 disabled:text-stone-400 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
+                className="w-8 h-8 rounded-xl bg-[#C96442] hover:bg-[#D97352] disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
                 title="Send message"
               >
                 <ArrowUp className="w-4 h-4 stroke-[2.5]" />
@@ -838,7 +838,7 @@ export default function ChatPane({
           </div>
 
           {/* Claude-style Disclaimer */}
-          <p className="text-[11px] text-stone-400 text-center mt-2.5 tracking-tight font-sans">
+          <p className="text-[11px] text-zinc-500 text-center mt-2.5 tracking-tight font-sans">
             NIM Studio can make mistakes. Check important info.
           </p>
         </div>
