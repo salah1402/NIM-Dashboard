@@ -54,8 +54,8 @@ class RoutingOutcome:
 
 TIER_TIMEOUTS = {
     "tier1": 5,
-    "tier2": 12,
-    "tier3": 90,
+    "tier2": 15,
+    "tier3": 30,
 }
 
 

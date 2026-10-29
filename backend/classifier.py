@@ -27,7 +27,17 @@ def classify_complexity(message: str) -> str:
     if any(sym in text for sym in math_symbols):
         return "tier3"
 
-    reasoning_keywords = ("prove", "derive", "analyze", "step-by-step")
+    reasoning_keywords = (
+        "prove",
+        "derive",
+        "analyze",
+        "step-by-step",
+        "roadmap",
+        "root map",
+        "road map",
+        "blueprint",
+        "curriculum",
+    )
     for kw in reasoning_keywords:
         if re.search(rf"\b{re.escape(kw)}\b", lower_text):
             return "tier3"

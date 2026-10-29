@@ -44,8 +44,9 @@ def test_chat_integration_cascade_fallback(temp_db):
     backend.main.SessionLocal = session_factory
     router.session_factory = session_factory
 
-    tier1_first_slug = router.tiers["tier1"][0]
-    tier1_second_slug = router.tiers["tier1"][1]
+    candidates = router.get_candidate_models()
+    tier1_first_slug = candidates[0][0]
+    tier1_second_slug = candidates[1][0]
 
     # Wire fail plan: first slug fails once with 429
     active_mock.set_fail_plan({
