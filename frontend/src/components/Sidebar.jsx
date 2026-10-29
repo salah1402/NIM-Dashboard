@@ -25,7 +25,7 @@ export default function Sidebar({
           className="w-full flex items-center justify-between bg-zinc-900 hover:bg-zinc-800/90 text-zinc-100 font-medium text-xs py-2.5 px-3.5 rounded-xl border border-zinc-800 hover:border-zinc-700 shadow-xs transition-all cursor-pointer group active:scale-[0.98]"
         >
           <div className="flex items-center space-x-2">
-            <Plus className="w-4 h-4 text-[#C96442]" />
+            <Plus className="w-4 h-4 text-emerald-400" />
             <span className="font-semibold text-zinc-200">New Chat</span>
           </div>
           <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 group-hover:bg-zinc-700/80 px-1.5 py-0.5 rounded border border-zinc-700/60">
@@ -88,13 +88,13 @@ export default function Sidebar({
               >
                 {/* Active Indicator Strip */}
                 {isActive && (
-                  <span className="absolute left-1 top-2.5 bottom-2.5 w-1 rounded-full bg-[#C96442]" />
+                  <span className="absolute left-1 top-2.5 bottom-2.5 w-1 rounded-full bg-emerald-500" />
                 )}
 
                 <div className="flex items-center space-x-2.5 min-w-0 flex-1 pl-1">
                   <MessageSquare
                     className={`w-3.5 h-3.5 flex-shrink-0 ${
-                      isActive ? 'text-[#C96442]' : 'text-zinc-500 group-hover:text-zinc-400'
+                      isActive ? 'text-emerald-400' : 'text-zinc-500 group-hover:text-zinc-400'
                     }`}
                   />
                   <span className="truncate text-xs font-normal text-zinc-200">

@@ -73,17 +73,17 @@ export default function ArtifactPane({ artifact, onClose }) {
           </div>
           <div className="h-3.5 w-px bg-zinc-800" />
           <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 rounded-md bg-[#C96442]/15 border border-[#C96442]/30 flex items-center justify-center text-[#E07A5A]">
+            <div className="w-5 h-5 rounded-md bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Sparkles className="w-3 h-3" />
             </div>
             <span className="font-semibold text-xs text-zinc-100">Live Artifact</span>
-            <Badge variant="terracotta" className="text-[10px] py-0 px-1.5">Sandbox</Badge>
+            <Badge variant="emerald" className="text-[10px] py-0 px-1.5">Sandbox</Badge>
           </div>
         </div>
 
         {/* Center: Fake Browser Address Capsule */}
         <div className="hidden md:flex items-center space-x-1.5 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[11px] text-zinc-400 shadow-xs max-w-xs truncate">
-          <Globe className="w-3 h-3 text-[#E07A5A]" />
+          <Globe className="w-3 h-3 text-emerald-400" />
           <span className="font-mono text-[10px] text-zinc-300">canvas://live-preview.html</span>
         </div>
 
@@ -185,7 +185,7 @@ export default function ArtifactPane({ artifact, onClose }) {
                 )}
               </button>
             </div>
-            <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-zinc-200 whitespace-pre-wrap selection:bg-[#C96442]/30">
+            <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-zinc-200 whitespace-pre-wrap selection:bg-emerald-500/30">
               <code>{artifact}</code>
             </pre>
           </div>

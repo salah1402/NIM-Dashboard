@@ -19,8 +19,10 @@ const badgeVariants = cva(
           "border-amber-800/60 bg-amber-950/60 text-amber-400",
         danger:
           "border-rose-800/60 bg-rose-950/60 text-rose-400",
+        emerald:
+          "border-emerald-500/40 bg-emerald-500/15 text-emerald-400",
         terracotta:
-          "border-[#C96442]/40 bg-[#C96442]/15 text-[#E07A5A]",
+          "border-emerald-500/40 bg-emerald-500/15 text-emerald-400",
       },
     },
     defaultVariants: {

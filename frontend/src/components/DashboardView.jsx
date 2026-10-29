@@ -34,7 +34,7 @@ const ERROR_COLORS = {
   timeout: '#F97316',      // Orange
   dead_model: '#EF4444',   // Red
   server_error: '#F43F5E', // Rose
-  circuit_open: '#E07A5A', // Terracotta
+  circuit_open: '#10B981', // Emerald
   unknown: '#71717A',      // Zinc-500
 };
 
@@ -81,7 +81,7 @@ const getTierBadge = (tier) => {
     case 'tier2':
       return <Badge variant="warning" className="text-[10px] font-mono">T2: Balanced</Badge>;
     case 'tier3':
-      return <Badge variant="terracotta" className="text-[10px] font-mono">T3: Deep Reasoning</Badge>;
+      return <Badge variant="emerald" className="text-[10px] font-mono">T3: Deep Reasoning</Badge>;
     default:
       return <Badge variant="outline" className="text-[10px] font-mono">{tier || '-'}</Badge>;
   }
@@ -177,7 +177,7 @@ export default function DashboardView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#C96442]/15 border border-[#C96442]/30 flex items-center justify-center text-[#E07A5A]">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Activity className="w-4 h-4" />
             </div>
             <div>
@@ -201,7 +201,7 @@ export default function DashboardView() {
             className="text-xs font-medium cursor-pointer"
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 text-[#E07A5A] mr-1.5 ${
+              className={`w-3.5 h-3.5 text-emerald-400 mr-1.5 ${
                 isRefreshing ? 'animate-spin' : ''
               }`}
             />
@@ -226,7 +226,7 @@ export default function DashboardView() {
               Total Invocations
             </CardTitle>
             <div className="w-7 h-7 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300">
-              <Zap className="w-3.5 h-3.5 text-[#E07A5A]" />
+              <Zap className="w-3.5 h-3.5 text-emerald-400" />
             </div>
           </CardHeader>
           <CardContent>
@@ -321,7 +321,7 @@ export default function DashboardView() {
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-zinc-800">
             <div>
               <CardTitle className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-[#E07A5A]" />
+                <BarChart2 className="w-4 h-4 text-emerald-400" />
                 Latency by Model Tier (ms)
               </CardTitle>
               <CardDescription className="text-xs text-zinc-400 mt-0.5">
@@ -378,7 +378,7 @@ export default function DashboardView() {
                     />
                     <Bar
                       dataKey="avg_latency_ms"
-                      fill="#C96442"
+                      fill="#10B981"
                       radius={[0, 4, 4, 0]}
                       name="Avg Latency"
                     />
@@ -468,11 +468,11 @@ export default function DashboardView() {
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800 pb-4">
           <div>
             <CardTitle className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-              <Database className="w-4 h-4 text-[#E07A5A]" />
+              <Database className="w-4 h-4 text-emerald-400" />
               Recent Execution Logs
             </CardTitle>
             <CardDescription className="text-xs text-zinc-400 mt-0.5">
-              Live audit stream persisted in SQLite <code className="text-[#E07A5A] font-mono">nim.db</code>
+              Live audit stream persisted in SQLite <code className="text-emerald-400 font-mono">nim.db</code>
             </CardDescription>
           </div>
           <span className="text-xs font-mono text-zinc-400">

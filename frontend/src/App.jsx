@@ -17,7 +17,7 @@ export const ClaudeLogo = ({ className = "w-5 h-5", ...props }) => (
     <defs>
       <ellipse id="petal-pair" cx="100" cy="100" rx="90" ry="22" />
     </defs>
-    <g fill="#C96442" fillRule="evenodd">
+    <g fill="#10B981" fillRule="evenodd">
       <use href="#petal-pair" transform="rotate(0 100 100)" />
       <use href="#petal-pair" transform="rotate(45 100 100)" />
       <use href="#petal-pair" transform="rotate(90 100 100)" />
@@ -302,7 +302,7 @@ export default function App() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-sm font-semibold tracking-tight text-zinc-100">NIM Studio</h1>
-              <span className="text-[10px] font-mono uppercase bg-[#C96442]/15 text-[#E07A5A] border border-[#C96442]/30 px-2 py-0.5 rounded-full font-semibold">
+              <span className="text-[10px] font-mono uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
                 God Mode
               </span>
             </div>

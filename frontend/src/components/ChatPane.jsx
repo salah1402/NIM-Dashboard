@@ -35,7 +35,7 @@ const ClaudeFlower = ({ className = "w-6 h-6", ...props }) => (
     <defs>
       <ellipse id="chat-petal" cx="100" cy="100" rx="90" ry="22" />
     </defs>
-    <g fill="#C96442" fillRule="evenodd">
+    <g fill="#10B981" fillRule="evenodd">
       <use href="#chat-petal" transform="rotate(0 100 100)" />
       <use href="#chat-petal" transform="rotate(45 100 100)" />
       <use href="#chat-petal" transform="rotate(90 100 100)" />
@@ -64,9 +64,9 @@ function CodeBlock({ language, value, onOpenArtifact }) {
     value.includes('<style');
 
   return (
-    <div className="relative my-4 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 text-stone-100 font-mono text-xs shadow-md not-prose">
+    <div className="relative my-4 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 text-zinc-100 font-mono text-xs shadow-md not-prose">
       {/* Code Window Header */}
-      <div className="flex items-center justify-between px-3.5 py-2 bg-stone-900 border-b border-stone-800 text-[11px] text-stone-400">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-zinc-900 border-b border-zinc-800 text-[11px] text-zinc-400">
         <div className="flex items-center space-x-2">
           {/* macOS window control dots */}
           <div className="flex items-center space-x-1.5 mr-1">
@@ -74,7 +74,7 @@ function CodeBlock({ language, value, onOpenArtifact }) {
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
           </div>
-          <span className="font-sans font-medium uppercase tracking-wider text-stone-300">
+          <span className="font-sans font-medium uppercase tracking-wider text-zinc-300">
             {language || 'code'}
           </span>
         </div>
@@ -83,17 +83,17 @@ function CodeBlock({ language, value, onOpenArtifact }) {
             <button
               onClick={() => onOpenArtifact(value, language)}
               type="button"
-              className="flex items-center space-x-1.5 text-stone-200 hover:text-white bg-stone-800 hover:bg-[#C96442] border border-stone-700 hover:border-[#C96442] px-2.5 py-1 rounded-md font-sans text-[11px] font-medium transition cursor-pointer shadow-xs group"
+              className="flex items-center space-x-1.5 text-zinc-200 hover:text-white bg-zinc-800 hover:bg-emerald-600 border border-zinc-700 hover:border-emerald-500 px-2.5 py-1 rounded-md font-sans text-[11px] font-medium transition cursor-pointer shadow-xs group"
               title="Open in Live Artifact Preview"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-[#C96442] group-hover:text-white transition-colors" />
+              <ExternalLink className="w-3.5 h-3.5 text-emerald-400 group-hover:text-white transition-colors" />
               <span>Open in Artifact</span>
             </button>
           )}
           <button
             onClick={handleCopy}
             type="button"
-            className="flex items-center space-x-1.5 hover:text-white transition-colors text-stone-400 px-2 py-1 rounded-md bg-stone-800 hover:bg-stone-700 cursor-pointer"
+            className="flex items-center space-x-1.5 hover:text-white transition-colors text-zinc-400 px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 cursor-pointer"
           >
             {copied ? (
               <>
@@ -102,14 +102,14 @@ function CodeBlock({ language, value, onOpenArtifact }) {
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-stone-400" />
+                <Copy className="w-3.5 h-3.5 text-zinc-400" />
                 <span>Copy</span>
               </>
             )}
           </button>
         </div>
       </div>
-      <div className="p-3.5 overflow-x-auto font-mono text-xs leading-relaxed text-stone-200">
+      <div className="p-3.5 overflow-x-auto font-mono text-xs leading-relaxed text-zinc-200">
         <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono">
           <code>{value}</code>
         </pre>
@@ -130,17 +130,17 @@ function ToolExecutionCard({ toolCall }) {
   };
 
   return (
-    <div className="my-3.5 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 text-stone-100 shadow-md font-mono text-xs not-prose w-full">
+    <div className="my-3.5 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-md font-mono text-xs not-prose w-full">
       {/* Tool Header with Window Dots */}
-      <div className="flex items-center justify-between px-3.5 py-2 bg-stone-900 border-b border-stone-800">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-zinc-900 border-b border-zinc-800">
         <div className="flex items-center space-x-2.5">
           <div className="flex items-center space-x-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
           </div>
-          <div className="flex items-center space-x-1.5 text-stone-200 text-xs font-sans font-medium">
-            <Terminal className="w-3.5 h-3.5 text-[#C96442]" />
+          <div className="flex items-center space-x-1.5 text-zinc-200 text-xs font-sans font-medium">
+            <Terminal className="w-3.5 h-3.5 text-emerald-400" />
             <span>Python Interpreter</span>
           </div>
           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-400 font-sans font-medium">
@@ -150,7 +150,7 @@ function ToolExecutionCard({ toolCall }) {
         <button
           onClick={handleCopyCode}
           type="button"
-          className="flex items-center space-x-1 text-[11px] text-stone-400 hover:text-white transition cursor-pointer px-2 py-0.5 rounded bg-stone-800 hover:bg-stone-700"
+          className="flex items-center space-x-1 text-[11px] text-zinc-400 hover:text-white transition cursor-pointer px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700"
           title="Copy Python code"
         >
           {copied ? (
@@ -160,7 +160,7 @@ function ToolExecutionCard({ toolCall }) {
             </>
           ) : (
             <>
-              <Copy className="w-3 h-3 text-stone-400" />
+              <Copy className="w-3 h-3 text-zinc-400" />
               <span>Copy Code</span>
             </>
           )}
@@ -168,8 +168,8 @@ function ToolExecutionCard({ toolCall }) {
       </div>
 
       {/* Code Section */}
-      <div className="p-3 bg-stone-950/90 text-stone-200 border-b border-stone-800/80 overflow-x-auto leading-relaxed">
-        <div className="text-[10px] uppercase tracking-wider text-stone-500 font-sans font-semibold mb-1">
+      <div className="p-3 bg-zinc-950/90 text-zinc-200 border-b border-zinc-800/80 overflow-x-auto leading-relaxed">
+        <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-sans font-semibold mb-1">
           Python Input
         </div>
         <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-[12px]">
@@ -179,7 +179,7 @@ function ToolExecutionCard({ toolCall }) {
 
       {/* Stdout Result Section */}
       <div className="p-3 bg-black/60 text-emerald-400 overflow-x-auto leading-relaxed font-mono">
-        <div className="text-[10px] uppercase tracking-wider text-stone-500 font-sans font-semibold mb-1">
+        <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-sans font-semibold mb-1">
           Output (stdout)
         </div>
         <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-[12px] whitespace-pre-wrap text-emerald-400">
@@ -368,10 +368,10 @@ export default function ChatPane({
                   className="p-3.5 text-xs text-zinc-200 bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800 hover:border-zinc-700 rounded-xl shadow-xs transition-all text-left cursor-pointer group flex flex-col justify-between"
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] uppercase font-mono font-semibold text-[#E07A5A] bg-[#C96442]/15 px-2 py-0.5 rounded border border-[#C96442]/30">
+                    <span className="text-[10px] uppercase font-mono font-semibold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
                       {item.tag}
                     </span>
-                    <Sparkles className="w-3.5 h-3.5 text-zinc-500 group-hover:text-[#C96442] transition-colors" />
+                    <Sparkles className="w-3.5 h-3.5 text-zinc-500 group-hover:text-emerald-400 transition-colors" />
                   </div>
                   <div className="font-semibold text-zinc-200 text-xs mb-1">{item.title}</div>
                   <div className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
@@ -439,9 +439,9 @@ export default function ChatPane({
                       type="button"
                       onClick={() => handleStartEdit(msg)}
                       title="Edit message"
-                      className="inline-flex items-center space-x-1 text-[11px] text-stone-500 hover:text-[#191918] bg-white border border-[#E5E3DE] px-2 py-0.5 rounded-md shadow-xs cursor-pointer transition"
+                      className="inline-flex items-center space-x-1 text-[11px] text-zinc-400 hover:text-zinc-100 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-md shadow-xs cursor-pointer transition"
                     >
-                      <Pencil className="w-3 h-3 text-stone-500" />
+                      <Pencil className="w-3 h-3 text-zinc-400" />
                       <span>Edit</span>
                     </button>
                   </div>
@@ -636,8 +636,8 @@ export default function ChatPane({
         )}
 
         {isSaving && (
-          <div className="flex items-center space-x-2 text-xs text-stone-500 italic px-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C96442] animate-ping"></span>
+          <div className="flex items-center space-x-2 text-xs text-zinc-400 italic px-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
             <span>Saving to database...</span>
           </div>
         )}
@@ -709,7 +709,7 @@ export default function ChatPane({
                   title="Attach image for vision analysis"
                   className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                     selectedImage
-                      ? 'text-[#E07A5A] bg-[#C96442]/20'
+                      ? 'text-emerald-400 bg-emerald-500/20'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
                   }`}
                 >
@@ -781,7 +781,7 @@ export default function ChatPane({
                     onClick={() => setShowModeDropdown((prev) => !prev)}
                     className="flex items-center space-x-1.5 bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer border border-zinc-700/80"
                   >
-                    <Zap className="w-3 h-3 text-[#E07A5A]" />
+                    <Zap className="w-3 h-3 text-emerald-400" />
                     <span>{currentModeObj.name}</span>
                     <ChevronDown className="w-3 h-3 text-zinc-400" />
                   </button>
@@ -824,12 +824,12 @@ export default function ChatPane({
                 </div>
               </div>
 
-              {/* Upward Send Button (Terracotta / Dark Accent) */}
+              {/* Upward Send Button (Emerald Green Accent) */}
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={(!input.trim() && !selectedImage) || isStreaming || isSaving}
-                className="w-8 h-8 rounded-xl bg-[#C96442] hover:bg-[#D97352] disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
+                className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
                 title="Send message"
               >
                 <ArrowUp className="w-4 h-4 stroke-[2.5]" />
