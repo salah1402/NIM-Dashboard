@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { MessageSquare, BarChart3 } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatPane from './components/ChatPane';
 import ArtifactPane from './components/ArtifactPane';
@@ -317,24 +318,26 @@ export default function App() {
           <button
             type="button"
             onClick={() => setView('chat')}
-            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'chat'
                 ? 'bg-zinc-800 text-zinc-100 font-semibold shadow-xs'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
             }`}
           >
-            <span>💬 Chat & Agent</span>
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Chat & Agent</span>
           </button>
           <button
             type="button"
             onClick={() => setView('dashboard')}
-            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'dashboard'
                 ? 'bg-zinc-800 text-zinc-100 font-semibold shadow-xs'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
             }`}
           >
-            <span>📊 Analytics & DB</span>
+            <BarChart3 className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Analytics & DB</span>
           </button>
         </div>
 

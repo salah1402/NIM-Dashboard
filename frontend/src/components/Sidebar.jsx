@@ -104,10 +104,10 @@ export default function Sidebar({
 
                 <div className="flex items-center space-x-1.5 ml-2">
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0 ${
                       isActive
                         ? 'bg-zinc-700/80 text-zinc-200 font-medium'
-                        : 'bg-zinc-800/60 text-zinc-500'
+                        : 'bg-zinc-800/60 text-zinc-400'
                     }`}
                   >
                     {conv.message_count ?? 0}
@@ -119,7 +119,7 @@ export default function Sidebar({
                         onDeleteConversation(conv.id);
                       }}
                       title="Delete conversation"
-                      className="opacity-0 group-hover:opacity-100 hover:text-rose-400 text-zinc-500 p-1 rounded hover:bg-zinc-800 transition cursor-pointer"
+                      className="opacity-0 group-hover:opacity-100 hover:text-rose-400 text-zinc-400 p-1 rounded hover:bg-zinc-800 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -132,20 +132,20 @@ export default function Sidebar({
       </div>
 
       {/* Footer Info Hub */}
-      <div className="p-3 border-t border-zinc-800/80 bg-[#0c0c0e] text-[11px] text-zinc-400 space-y-1.5">
+      <div className="px-4 py-3.5 border-t border-zinc-800/80 bg-[#0c0c0e] text-[11px] text-zinc-400 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1.5 text-zinc-300">
             <Database className="w-3.5 h-3.5 text-zinc-500" />
             <span className="font-medium text-xs">SQLite Storage</span>
           </div>
-          <span className="text-[10px] font-mono bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">
+          <span className="text-[10px] font-mono bg-zinc-800/90 border border-zinc-700/60 px-1.5 py-0.5 rounded text-zinc-300 font-medium">
             nim.db
           </span>
         </div>
-        <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+        <div className="flex items-center justify-between text-[10.5px] text-zinc-400 font-mono">
           <span>Active Flagships</span>
           <span className="text-emerald-400 font-semibold flex items-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
             3 Tiers Live
           </span>
         </div>

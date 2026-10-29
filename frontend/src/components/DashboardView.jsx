@@ -34,7 +34,7 @@ const ERROR_COLORS = {
   timeout: '#F97316',      // Orange
   dead_model: '#EF4444',   // Red
   server_error: '#F43F5E', // Rose
-  circuit_open: '#10B981', // Emerald
+  circuit_open: '#A855F7', // Purple
   unknown: '#71717A',      // Zinc-500
 };
 
@@ -56,6 +56,13 @@ const getStatusBadge = (status) => {
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-orange-950/60 text-orange-400 border border-orange-800/60">
           ● timeout
+        </span>
+      );
+    case 'circuit_open':
+    case 'skipped_circuit_open':
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-purple-950/60 text-purple-400 border border-purple-800/60">
+          ● circuit_open
         </span>
       );
     case 'dead_model':
