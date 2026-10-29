@@ -14,6 +14,10 @@ import {
   ChevronDown,
   X,
   ExternalLink,
+  Terminal,
+  Code,
+  Layers,
+  Zap,
 } from 'lucide-react';
 
 const cleanContent = (content) => {
@@ -25,6 +29,20 @@ const cleanContent = (content) => {
     .replace(/[\r\n]+$/, '')
     .trim();
 };
+
+const ClaudeFlower = ({ className = "w-6 h-6", ...props }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="presentation" className={className} {...props}>
+    <defs>
+      <ellipse id="chat-petal" cx="100" cy="100" rx="90" ry="22" />
+    </defs>
+    <g fill="#C96442" fillRule="evenodd">
+      <use href="#chat-petal" transform="rotate(0 100 100)" />
+      <use href="#chat-petal" transform="rotate(45 100 100)" />
+      <use href="#chat-petal" transform="rotate(90 100 100)" />
+      <use href="#chat-petal" transform="rotate(135 100 100)" />
+    </g>
+  </svg>
+);
 
 function CodeBlock({ language, value, onOpenArtifact }) {
   const [copied, setCopied] = useState(false);
@@ -47,26 +65,35 @@ function CodeBlock({ language, value, onOpenArtifact }) {
 
   return (
     <div className="relative my-4 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 text-stone-100 font-mono text-xs shadow-md not-prose">
-      <div className="flex items-center justify-between px-3.5 py-1.5 bg-stone-900 border-b border-stone-800 text-[11px] text-stone-400">
-        <span className="font-sans font-medium uppercase tracking-wider text-stone-300">
-          {language || 'code'}
-        </span>
+      {/* Code Window Header */}
+      <div className="flex items-center justify-between px-3.5 py-2 bg-stone-900 border-b border-stone-800 text-[11px] text-stone-400">
+        <div className="flex items-center space-x-2">
+          {/* macOS window control dots */}
+          <div className="flex items-center space-x-1.5 mr-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+          </div>
+          <span className="font-sans font-medium uppercase tracking-wider text-stone-300">
+            {language || 'code'}
+          </span>
+        </div>
         <div className="flex items-center space-x-2">
           {isArtifact && onOpenArtifact && (
             <button
               onClick={() => onOpenArtifact(value, language)}
               type="button"
-              className="flex items-center space-x-1.5 text-stone-300 hover:text-white bg-stone-800 hover:bg-[#C96442] border border-stone-700 hover:border-[#C96442] px-2 py-0.5 rounded font-sans text-[11px] font-medium transition cursor-pointer shadow-xs group"
+              className="flex items-center space-x-1.5 text-stone-200 hover:text-white bg-stone-800 hover:bg-[#C96442] border border-stone-700 hover:border-[#C96442] px-2.5 py-1 rounded-md font-sans text-[11px] font-medium transition cursor-pointer shadow-xs group"
               title="Open in Live Artifact Preview"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-[#C96442] group-hover:text-white" />
+              <ExternalLink className="w-3.5 h-3.5 text-[#C96442] group-hover:text-white transition-colors" />
               <span>Open in Artifact</span>
             </button>
           )}
           <button
             onClick={handleCopy}
             type="button"
-            className="flex items-center space-x-1.5 hover:text-white transition-colors text-stone-400 px-2 py-0.5 rounded bg-stone-800 hover:bg-stone-700 cursor-pointer"
+            className="flex items-center space-x-1.5 hover:text-white transition-colors text-stone-400 px-2 py-1 rounded-md bg-stone-800 hover:bg-stone-700 cursor-pointer"
           >
             {copied ? (
               <>
@@ -103,14 +130,19 @@ function ToolExecutionCard({ toolCall }) {
   };
 
   return (
-    <div className="my-3 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 text-stone-100 shadow-md font-mono text-xs not-prose w-full">
-      {/* Tool Header */}
+    <div className="my-3.5 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 text-stone-100 shadow-md font-mono text-xs not-prose w-full">
+      {/* Tool Header with Window Dots */}
       <div className="flex items-center justify-between px-3.5 py-2 bg-stone-900 border-b border-stone-800">
-        <div className="flex items-center space-x-2">
-          <span className="text-base">🛠️</span>
-          <span className="font-sans font-semibold text-stone-200 text-xs">
-            Python Interpreter
-          </span>
+        <div className="flex items-center space-x-2.5">
+          <div className="flex items-center space-x-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+          </div>
+          <div className="flex items-center space-x-1.5 text-stone-200 text-xs font-sans font-medium">
+            <Terminal className="w-3.5 h-3.5 text-[#C96442]" />
+            <span>Python Interpreter</span>
+          </div>
           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-400 font-sans font-medium">
             Executed
           </span>
@@ -124,7 +156,7 @@ function ToolExecutionCard({ toolCall }) {
           {copied ? (
             <>
               <Check className="w-3 h-3 text-emerald-400" />
-              <span className="text-emerald-400 font-medium">Copied</span>
+              <span className="text-emerald-400">Copied</span>
             </>
           ) : (
             <>
@@ -146,11 +178,11 @@ function ToolExecutionCard({ toolCall }) {
       </div>
 
       {/* Stdout Result Section */}
-      <div className="p-3 bg-black/50 text-emerald-400 overflow-x-auto leading-relaxed">
+      <div className="p-3 bg-black/60 text-emerald-400 overflow-x-auto leading-relaxed font-mono">
         <div className="text-[10px] uppercase tracking-wider text-stone-500 font-sans font-semibold mb-1">
           Output (stdout)
         </div>
-        <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-[12px] whitespace-pre-wrap">
+        <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-[12px] whitespace-pre-wrap text-emerald-400">
           <code>{result || '(no output)'}</code>
         </pre>
       </div>
@@ -169,6 +201,7 @@ export default function ChatPane({
   isSaving,
   onSendMessage,
   onOpenArtifact,
+  isArtifactOpen,
 }) {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -176,6 +209,7 @@ export default function ChatPane({
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editPrompt, setEditPrompt] = useState('');
   const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showModeDropdown, setShowModeDropdown] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -185,12 +219,12 @@ export default function ChatPane({
     scrollToBottom();
   }, [messages, isStreaming, isSaving]);
 
-  // Auto-expand textarea up to 5 lines (~140px)
+  // Auto-expand textarea up to 6 lines (~160px)
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       const scrollH = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = `${Math.min(Math.max(scrollH, 44), 140)}px`;
+      textareaRef.current.style.height = `${Math.min(Math.max(scrollH, 44), 160)}px`;
     }
   }, [input]);
 
@@ -211,7 +245,6 @@ export default function ChatPane({
 
   const handleRegenerate = (asstIndex) => {
     if (isStreaming || isSaving) return;
-    // Find the user prompt immediately preceding this assistant message
     for (let i = asstIndex - 1; i >= 0; i--) {
       if (messages[i].role === 'user') {
         onSendMessage(messages[i].content);
@@ -233,39 +266,86 @@ export default function ChatPane({
     onSendMessage(promptToSend);
   };
 
+  const modes = [
+    {
+      id: 'auto',
+      name: 'Auto (Highest Capability)',
+      badge: 'Recommended',
+      description: 'Smart complexity classifier routing to flagship 550B & 120B tiers',
+    },
+    {
+      id: 'deep',
+      name: 'Deep Reasoning (Tier 3)',
+      badge: 'Flagship 550B',
+      description: 'Heavyweight reasoning models with extended 120s generation budget',
+    },
+    {
+      id: 'balanced',
+      name: 'Balanced (Tier 2)',
+      badge: 'High Throughput',
+      description: 'Rapid response flagship models (Kimi / Qwen)',
+    },
+  ];
+
+  const currentModeObj = modes.find((m) => m.id === mode) || modes[0];
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#F9F9F8] text-[#1D1B1B] overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-[#F9F9F8] text-[#191918] overflow-hidden select-text">
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-8 max-w-3xl w-full mx-auto space-y-6">
+      <div className={`flex-1 overflow-y-auto px-4 py-8 ${isArtifactOpen ? 'max-w-2xl' : 'max-w-3xl'} w-full mx-auto space-y-6 transition-all duration-300`}>
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center px-4 py-16">
-            <div className="w-12 h-12 rounded-2xl bg-[#F0EFEA] border border-[#E5E3DE] flex items-center justify-center text-[#C96442] mb-5 shadow-sm">
-              <Sparkles className="w-6 h-6" />
+          /* Empty / Welcome Hero Canvas */
+          <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12">
+            <div className="w-14 h-14 rounded-2xl bg-white border border-[#E5E3DE] flex items-center justify-center shadow-xs mb-5">
+              <ClaudeFlower className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-serif font-normal text-[#1D1B1B] tracking-tight">
-              {conversation ? conversation.title : 'What would you like to explore today?'}
+            <h2 className="text-2xl sm:text-3xl font-serif font-normal text-[#191918] tracking-tight">
+              {conversation ? conversation.title : 'What would you like to build or explore today?'}
             </h2>
-            <p className="text-sm text-stone-500 max-w-md mt-2 mb-8">
-              Fast, high-fidelity responses powered by NVIDIA NIM flagship models with cascading failover.
+            <p className="text-xs sm:text-sm text-stone-500 max-w-md mt-2.5 mb-8 font-sans">
+              Autonomous Python agent and live Artifact rendering powered by NVIDIA NIM flagship cascade routing.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl text-left">
               {[
-                'Create me a root map for students of PCMB after 12th',
-                'Explain how 40 RPM per-slug cascading works',
-                'Compare transformer attention vs state space models',
-                'Write a complete Python web scraper using BeautifulSoup',
-              ].map((prompt, idx) => (
+                {
+                  tag: 'Live Artifact',
+                  title: 'Single-file Interactive Page',
+                  prompt: "Generate a simple single-file HTML page with a blue button that alerts 'Hello World' when clicked.",
+                },
+                {
+                  tag: 'Python Agent',
+                  title: 'Mathematical Computation',
+                  prompt: 'Calculate the 50th Fibonacci number using Python and tell me the result.',
+                },
+                {
+                  tag: 'Reasoning Roadmap',
+                  title: 'Career & Curriculum Guide',
+                  prompt: 'Create me a root map for students of PCMB after 12th.',
+                },
+                {
+                  tag: 'System Architecture',
+                  title: 'Cascade Router Internals',
+                  prompt: 'Explain how 40 RPM per-slug cascading and circuit breakers work.',
+                },
+              ].map((item, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
-                    setInput(prompt);
+                    setInput(item.prompt);
                     textareaRef.current?.focus();
                   }}
-                  className="p-3.5 text-xs text-[#1D1B1B] bg-white hover:bg-[#F4F3EE] border border-[#E5E3DE] hover:border-stone-400 rounded-xl shadow-xs transition-all text-left cursor-pointer group"
+                  className="p-3.5 text-xs text-[#191918] bg-white hover:bg-[#F4F3EE] border border-[#E5E3DE] hover:border-stone-400 rounded-xl shadow-xs transition-all text-left cursor-pointer group flex flex-col justify-between"
                 >
-                  <span className="font-serif italic text-stone-400 mr-1.5 group-hover:text-[#C96442]">“</span>
-                  <span className="font-normal">{prompt}</span>
-                  <span className="font-serif italic text-stone-400 ml-1.5 group-hover:text-[#C96442]">”</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] uppercase font-mono font-semibold text-[#C96442] bg-[#C96442]/10 px-2 py-0.5 rounded">
+                      {item.tag}
+                    </span>
+                    <Sparkles className="w-3.5 h-3.5 text-stone-300 group-hover:text-[#C96442] transition-colors" />
+                  </div>
+                  <div className="font-semibold text-stone-800 text-xs mb-1">{item.title}</div>
+                  <div className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
+                    "{item.prompt}"
+                  </div>
                 </button>
               ))}
             </div>
@@ -301,7 +381,7 @@ export default function ChatPane({
                       type="button"
                       onClick={() => handleStartEdit(msg)}
                       title="Edit message"
-                      className="inline-flex items-center space-x-1 text-[11px] text-stone-500 hover:text-[#1D1B1B] bg-white border border-[#E5E3DE] px-2 py-0.5 rounded-md shadow-xs cursor-pointer transition"
+                      className="inline-flex items-center space-x-1 text-[11px] text-stone-500 hover:text-[#191918] bg-white border border-[#E5E3DE] px-2 py-0.5 rounded-md shadow-xs cursor-pointer transition"
                     >
                       <Pencil className="w-3 h-3 text-stone-500" />
                       <span>Edit</span>
@@ -352,7 +432,7 @@ export default function ChatPane({
                         value={editPrompt}
                         onChange={(e) => setEditPrompt(e.target.value)}
                         rows={3}
-                        className="w-full text-sm text-[#1D1B1B] bg-transparent focus:outline-none resize-none leading-relaxed"
+                        className="w-full text-sm text-[#191918] bg-transparent focus:outline-none resize-none leading-relaxed"
                       />
                       <div className="flex items-center justify-end space-x-2 mt-2 pt-2 border-t border-stone-100 text-xs">
                         <button
@@ -365,14 +445,14 @@ export default function ChatPane({
                         <button
                           type="button"
                           onClick={handleSaveEdit}
-                          className="px-3.5 py-1 rounded-lg bg-[#1D1B1B] hover:bg-black text-white font-medium shadow-xs transition cursor-pointer"
+                          className="px-3.5 py-1 rounded-lg bg-[#191918] hover:bg-black text-white font-medium shadow-xs transition cursor-pointer"
                         >
                           Save & Submit
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-[#F0EFEA] border border-[#E5E3DE]/60 text-[#1D1B1B] font-sans font-medium">
+                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-[#F0EFEA] border border-[#E5E3DE]/60 text-[#191918] font-sans font-medium">
                       {cleaned}
                     </div>
                   )
@@ -389,7 +469,7 @@ export default function ChatPane({
                     )}
 
                     {cleaned ? (
-                      <div className="prose prose-stone max-w-none font-serif text-[#1D1B1B] text-[15.5px] leading-[1.75] prose-headings:font-serif prose-headings:font-normal prose-headings:text-[#1D1B1B] prose-p:my-3 prose-li:my-1 prose-pre:my-3">
+                      <div className="prose prose-stone max-w-none font-serif text-[#191918] text-[15.5px] leading-[1.78] prose-headings:font-serif prose-headings:font-normal prose-headings:text-[#191918] prose-p:my-3 prose-li:my-1 prose-pre:my-3">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
@@ -410,7 +490,7 @@ export default function ChatPane({
                               }
                               return (
                                 <code
-                                  className="bg-[#F0EFEA] text-[#1D1B1B] text-xs px-1.5 py-0.5 rounded font-mono font-medium border border-[#E5E3DE]"
+                                  className="bg-[#F0EFEA] text-[#191918] text-xs px-1.5 py-0.5 rounded font-mono font-medium border border-[#E5E3DE]"
                                   {...props}
                                 >
                                   {children}
@@ -443,7 +523,7 @@ export default function ChatPane({
                         <button
                           type="button"
                           onClick={() => handleCopyAssistant(msg.id, cleaned)}
-                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-[#1D1B1B] transition cursor-pointer"
+                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-[#191918] transition cursor-pointer"
                           title="Copy text"
                         >
                           {copiedMessageId === msg.id ? (
@@ -461,7 +541,7 @@ export default function ChatPane({
                         <button
                           type="button"
                           onClick={() => handleRegenerate(idx)}
-                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-[#1D1B1B] transition cursor-pointer"
+                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-[#191918] transition cursor-pointer"
                           title="Regenerate response"
                         >
                           <RotateCw className="w-3.5 h-3.5" />
@@ -486,11 +566,11 @@ export default function ChatPane({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Claude-style Expanding Input Box Area */}
+      {/* Claude-style Luxury Floating Input Hub */}
       <footer className="p-4 bg-gradient-to-t from-[#F9F9F8] via-[#F9F9F8] to-transparent">
-        <div className="max-w-3xl mx-auto">
-          {/* Main Input Box Container */}
-          <div className="relative rounded-2xl border border-stone-300 bg-white shadow-sm focus-within:border-stone-400 focus-within:shadow-md transition-all p-3">
+        <div className={`${isArtifactOpen ? 'max-w-2xl' : 'max-w-3xl'} mx-auto transition-all duration-300`}>
+          {/* Main Input Box Card */}
+          <div className="relative rounded-2xl border border-stone-300 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.05)] focus-within:border-stone-400 focus-within:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all p-3">
             {/* Auto-expanding Textarea */}
             <textarea
               ref={textareaRef}
@@ -503,15 +583,15 @@ export default function ChatPane({
                   ? 'Generating response...'
                   : isSaving
                   ? 'Saving to SQLite...'
-                  : 'Reply to NIM...'
+                  : 'Reply to NIM Studio...'
               }
               disabled={isStreaming || isSaving}
-              className="w-full bg-transparent text-sm text-[#1D1B1B] placeholder-stone-400 focus:outline-none resize-none leading-relaxed min-h-[44px] max-h-[140px] px-1 py-1"
+              className="w-full bg-transparent text-sm text-[#191918] placeholder-stone-400 focus:outline-none resize-none leading-relaxed min-h-[44px] max-h-[160px] px-1 py-1 font-sans"
             />
 
             {/* Input Bottom Action Bar */}
             <div className="flex items-center justify-between pt-2 border-t border-stone-100 mt-1">
-              <div className="flex items-center space-x-1 relative">
+              <div className="flex items-center space-x-1.5 relative">
                 {/* Paperclip Icon for future file uploads */}
                 <button
                   type="button"
@@ -526,7 +606,7 @@ export default function ChatPane({
                   <button
                     type="button"
                     onClick={() => setShowToolsMenu((prev) => !prev)}
-                    title="Tools & MCP servers"
+                    title="Tools & Capabilities"
                     className="flex items-center space-x-1 p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer text-xs"
                   >
                     <Wrench className="w-4 h-4" />
@@ -534,8 +614,8 @@ export default function ChatPane({
 
                   {/* Tools Dropdown Popover */}
                   {showToolsMenu && (
-                    <div className="absolute left-0 bottom-full mb-2 w-56 bg-white border border-stone-200 rounded-xl shadow-lg p-2 z-50 text-xs">
-                      <div className="flex items-center justify-between px-2 py-1 border-b border-stone-100 mb-1 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">
+                    <div className="absolute left-0 bottom-full mb-2 w-60 bg-white border border-stone-200 rounded-2xl shadow-xl p-2.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between px-2 py-1 border-b border-stone-100 mb-1.5 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">
                         <span>Tools & Capabilities</span>
                         <button
                           type="button"
@@ -546,57 +626,98 @@ export default function ChatPane({
                         </button>
                       </div>
                       <div className="space-y-1">
-                        <div className="px-2 py-1.5 rounded-lg text-stone-800 bg-stone-50 border border-stone-200/80 flex items-center justify-between">
+                        <div className="px-2.5 py-2 rounded-xl text-stone-800 bg-stone-50 border border-stone-200/80 flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span className="font-medium text-xs">Code Interpreter</span>
+                            <span className="font-semibold text-xs">Code Interpreter</span>
                           </div>
-                          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold">Active</span>
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold">
+                            Active
+                          </span>
                         </div>
-                        <div className="px-2 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
+                        <div className="px-2.5 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
                           <span>Web Search</span>
-                          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">Soon</span>
+                          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                            Soon
+                          </span>
                         </div>
-                        <div className="px-2 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
+                        <div className="px-2.5 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
                           <span>File Context</span>
-                          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">Soon</span>
+                          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                            Soon
+                          </span>
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Routing Mode Selector */}
-                <div className="ml-2">
-                  <select
-                    value={mode}
-                    onChange={(e) => setMode && setMode(e.target.value)}
-                    disabled={isStreaming || isSaving}
-                    className="bg-transparent text-stone-600 hover:text-[#1D1B1B] text-xs font-medium rounded-lg px-2 py-1 border border-transparent hover:border-stone-200 focus:outline-none focus:border-stone-300 cursor-pointer transition"
+                {/* Custom Routing Mode Selector Pill */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowModeDropdown((prev) => !prev)}
+                    className="flex items-center space-x-1.5 bg-[#F0EFEA] hover:bg-[#E5E3DE] text-stone-700 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer border border-[#E5E3DE]"
                   >
-                    <option value="auto">Auto (Highest Capability)</option>
-                    <option value="deep">Deep Reasoning (Tier 3)</option>
-                    <option value="balanced">Balanced (Tier 2)</option>
-                  </select>
+                    <Zap className="w-3 h-3 text-[#C96442]" />
+                    <span>{currentModeObj.name}</span>
+                    <ChevronDown className="w-3 h-3 text-stone-400" />
+                  </button>
+
+                  {/* Mode Dropdown Popover */}
+                  {showModeDropdown && (
+                    <div className="absolute left-0 bottom-full mb-2 w-72 bg-white border border-stone-200 rounded-2xl shadow-xl p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="px-2 py-1 text-[11px] font-semibold text-stone-400 uppercase tracking-wider border-b border-stone-100 mb-1">
+                        Routing Strategy
+                      </div>
+                      <div className="space-y-1">
+                        {modes.map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => {
+                              setMode(m.id);
+                              setShowModeDropdown(false);
+                            }}
+                            className={`w-full text-left px-2.5 py-2 rounded-xl transition cursor-pointer flex flex-col space-y-0.5 ${
+                              mode === m.id
+                                ? 'bg-[#F0EFEA] text-[#191918] font-semibold'
+                                : 'text-stone-600 hover:bg-stone-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs">{m.name}</span>
+                              <span className="text-[10px] bg-stone-200/60 text-stone-600 px-1.5 py-0.5 rounded font-mono">
+                                {m.badge}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-stone-400 font-normal">
+                              {m.description}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Send Arrow Button */}
+              {/* Upward Send Button (Terracotta / Dark Accent) */}
               <button
                 type="button"
                 onClick={onSendMessage}
                 disabled={!input.trim() || isStreaming || isSaving}
-                className="w-8 h-8 rounded-xl bg-[#1D1B1B] hover:bg-black disabled:bg-stone-200 disabled:text-stone-400 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed"
+                className="w-8 h-8 rounded-xl bg-[#C96442] hover:bg-[#B35536] disabled:bg-stone-200 disabled:text-stone-400 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
                 title="Send message"
               >
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUp className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
           </div>
 
           {/* Claude-style Disclaimer */}
           <p className="text-[11px] text-stone-400 text-center mt-2.5 tracking-tight font-sans">
-            NIM Dashboard can make mistakes. Check important info.
+            NIM Studio can make mistakes. Check important info.
           </p>
         </div>
       </footer>

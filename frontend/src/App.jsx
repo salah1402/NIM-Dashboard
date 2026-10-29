@@ -12,6 +12,20 @@ import {
   checkHealth,
 } from './api';
 
+export const ClaudeLogo = ({ className = "w-5 h-5", ...props }) => (
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="presentation" className={className} {...props}>
+    <defs>
+      <ellipse id="petal-pair" cx="100" cy="100" rx="90" ry="22" />
+    </defs>
+    <g fill="#C96442" fillRule="evenodd">
+      <use href="#petal-pair" transform="rotate(0 100 100)" />
+      <use href="#petal-pair" transform="rotate(45 100 100)" />
+      <use href="#petal-pair" transform="rotate(90 100 100)" />
+      <use href="#petal-pair" transform="rotate(135 100 100)" />
+    </g>
+  </svg>
+);
+
 export default function App() {
   const [view, setView] = useState('chat'); // 'chat' | 'dashboard'
   const [conversations, setConversations] = useState([]);
@@ -44,8 +58,6 @@ export default function App() {
       setConversations(list);
 
       if (list.length > 0) {
-        // If a specific conversation was requested to be selected, use it
-        // Otherwise, if no active conversation is set, auto-select the most recent
         const targetId = selectId || activeId || list[0].id;
         const exists = list.some((c) => c.id === targetId);
         const finalId = exists ? targetId : list[0].id;
@@ -84,7 +96,7 @@ export default function App() {
     };
   }, [activeId]);
 
-  // Initial load: check health & load conversations (auto-select most recent on refresh)
+  // Initial load: check health & load conversations
   useEffect(() => {
     checkHealth()
       .then((res) => {
@@ -94,6 +106,20 @@ export default function App() {
 
     loadConversations();
   }, []);
+
+  // Global keyboard shortcuts (Ctrl+N for new chat, Esc for closing artifact)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        handleNewChat();
+      } else if (e.key === 'Escape' && isArtifactOpen) {
+        handleCloseArtifact();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isArtifactOpen]);
 
   const handleNewChat = async () => {
     handleCloseArtifact();
@@ -224,7 +250,6 @@ export default function App() {
                 : m
             )
           );
-          // Refresh list in case conversation was created before error
           try {
             const list = await fetchConversations();
             setConversations(list);
@@ -242,53 +267,59 @@ export default function App() {
   const activeConversation = conversations.find((c) => c.id === activeId);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
-      {/* Top Header */}
-      <header className="border-b border-[#E5E3DE] bg-[#F9F9F8] px-6 py-2.5 flex items-center justify-between z-10">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-[#F0EFEA] border border-[#E5E3DE] flex items-center justify-center font-serif font-bold text-[#C96442]">
-            N
+    <div className="flex flex-col h-screen bg-[#F9F9F8] text-[#191918] overflow-hidden font-sans">
+      {/* Top Header - $50k Luxury Studio Styling */}
+      <header className="border-b border-[#E5E3DE] bg-[#F9F9F8]/90 backdrop-blur-md px-6 py-2.5 flex items-center justify-between z-20 shrink-0">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-8 h-8 rounded-xl bg-white border border-[#E5E3DE] flex items-center justify-center shadow-xs">
+            <ClaudeLogo className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-base font-semibold tracking-tight text-[#1D1B1B]">NIM Dashboard</h1>
+              <h1 className="text-sm font-semibold tracking-tight text-[#191918]">NIM Studio</h1>
+              <span className="text-[10px] font-mono uppercase bg-[#C96442]/10 text-[#C96442] border border-[#C96442]/30 px-2 py-0.5 rounded-full font-semibold">
+                God Mode
+              </span>
             </div>
-            <p className="text-xs text-stone-500">Autonomous Coding Agent & Multi-Slug Cascade Router</p>
+            <p className="text-[11px] text-stone-500 font-sans tracking-tight">
+              Flagship Autonomous AI Agent & Cascade Router
+            </p>
           </div>
         </div>
 
         {/* View Switcher Toggle */}
-        <div className="flex items-center bg-[#F0EFEA] p-1 rounded-xl border border-[#E5E3DE]">
+        <div className="flex items-center bg-[#F0EFEA] p-1 rounded-xl border border-[#E5E3DE] shadow-xs">
           <button
             type="button"
             onClick={() => setView('chat')}
-            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'chat'
-                ? 'bg-white text-[#1D1B1B] font-medium shadow-xs'
-                : 'text-stone-500 hover:text-[#1D1B1B] hover:bg-stone-200/40'
+                ? 'bg-white text-[#191918] font-semibold shadow-xs'
+                : 'text-stone-500 hover:text-[#191918] hover:bg-stone-200/40'
             }`}
           >
-            <span>💬 Chat</span>
+            <span>💬 Chat & Agent</span>
           </button>
           <button
             type="button"
             onClick={() => setView('dashboard')}
-            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'dashboard'
-                ? 'bg-white text-[#1D1B1B] font-medium shadow-xs'
-                : 'text-stone-500 hover:text-[#1D1B1B] hover:bg-stone-200/40'
+                ? 'bg-white text-[#191918] font-semibold shadow-xs'
+                : 'text-stone-500 hover:text-[#191918] hover:bg-stone-200/40'
             }`}
           >
-            <span>📊 Dashboard</span>
+            <span>📊 Analytics & DB</span>
           </button>
         </div>
 
-        <div className="flex items-center space-x-3 text-xs font-mono">
-          <div className="hidden sm:flex items-center space-x-1.5 bg-white px-3 py-1.5 rounded-lg border border-[#E5E3DE] text-stone-600 shadow-xs">
+        {/* Telemetry Status Badges */}
+        <div className="flex items-center space-x-2.5 text-xs font-mono">
+          <div className="hidden sm:flex items-center space-x-1.5 bg-white px-3 py-1.5 rounded-xl border border-[#E5E3DE] text-stone-600 shadow-xs">
             <span className="text-stone-400">Rate Limit:</span>
             <span className="text-emerald-700 font-semibold">40 RPM / Slug</span>
           </div>
-          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-lg border border-[#E5E3DE] shadow-xs">
+          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-[#E5E3DE] shadow-xs">
             <span
               className={`w-2 h-2 rounded-full ${
                 backendHealth === 'connected'
@@ -296,14 +327,14 @@ export default function App() {
                   : 'bg-rose-500'
               }`}
             />
-            <span className="text-stone-600">
+            <span className="text-stone-700 font-medium">
               API: {backendHealth === 'connected' ? '8000 OK' : backendHealth}
             </span>
           </div>
         </div>
       </header>
 
-      {/* Main Container: Chat vs Dashboard with state preserved */}
+      {/* Main Container: Chat vs Dashboard */}
       <div className={view === 'chat' ? 'flex flex-1 overflow-hidden relative' : 'hidden'}>
         <Sidebar
           conversations={conversations}
@@ -329,6 +360,7 @@ export default function App() {
               isSaving={isSaving}
               onSendMessage={handleSendMessage}
               onOpenArtifact={handleOpenArtifact}
+              isArtifactOpen={isArtifactOpen}
             />
           </div>
           {isArtifactOpen && (
