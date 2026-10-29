@@ -127,6 +127,7 @@ class ConversationCreate(BaseModel):
 class ChatRequest(BaseModel):
     conversation_id: Optional[str] = None
     message: str
+    image_b64: Optional[str] = None
     force_model: Optional[str] = None
     mode: Optional[str] = "auto"
 
@@ -138,6 +139,7 @@ class MessageOut(BaseModel):
     conversation_id: str
     role: str
     content: str
+    image_url: Optional[str] = None
     model_slug: Optional[str] = None
     latency_ms: Optional[int] = None
     fallback_count: Optional[int] = 0
@@ -211,6 +213,7 @@ def get_conversation_messages_endpoint(conversation_id: str, db: Session = Depen
             conversation_id=m.conversation_id,
             role=m.role,
             content=m.content,
+            image_url=getattr(m, "image_url", None),
             model_slug=m.model_slug,
             latency_ms=m.latency_ms,
             fallback_count=getattr(m, "fallback_count", 0) or 0,
@@ -259,6 +262,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
         conversation_id=conversation_id,
         role="user",
         content=user_message,
+        image_url=request.image_b64,
         model_slug=None,
         latency_ms=None,
         fallback_count=0,
@@ -271,7 +275,20 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
             try:
                 # Fetch full history for model context
                 current_msgs = repository.list_messages(stream_db, conversation_id)
-                msg_history = [{"role": m.role, "content": m.content} for m in current_msgs]
+                msg_history = []
+                for m in current_msgs:
+                    img = getattr(m, "image_url", None)
+                    if m.role == "user" and img:
+                        url = img if img.startswith("data:") else f"data:image/jpeg;base64,{img}"
+                        msg_history.append({
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": m.content},
+                                {"type": "image_url", "image_url": {"url": url}},
+                            ],
+                        })
+                    else:
+                        msg_history.append({"role": m.role, "content": m.content})
 
                 # Run cascade routing with python tool execution loop
                 tools_list = [PYTHON_TOOL_SCHEMA]
@@ -286,6 +303,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                         force_model=request.force_model,
                         mode=request.mode,
                         tools=tools_list,
+                        image_b64=request.image_b64,
                     )
                     total_latency_ms += outcome.latency_ms
                     all_attempts.extend(outcome.attempts)

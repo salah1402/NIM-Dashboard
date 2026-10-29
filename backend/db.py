@@ -38,6 +38,9 @@ def init_db(target_engine=None):
         if columns and "fallback_count" not in columns:
             conn.execute(text("ALTER TABLE messages ADD COLUMN fallback_count INTEGER DEFAULT 0"))
             conn.commit()
+        if columns and "image_url" not in columns:
+            conn.execute(text("ALTER TABLE messages ADD COLUMN image_url TEXT"))
+            conn.commit()
 
 
 def get_db():

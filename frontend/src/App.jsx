@@ -151,11 +151,17 @@ export default function App() {
     }
   };
 
-  const handleSendMessage = async (e, customText = null) => {
+  const handleSendMessage = async (e, customText = null, customImageB64 = null) => {
     if (e && e.preventDefault) e.preventDefault();
-    const textToSend = typeof customText === 'string' ? customText : (typeof e === 'string' ? e : input);
-    const trimmed = textToSend.trim();
-    if (!trimmed || isStreaming || isSaving) return;
+    let textToSend = typeof customText === 'string' ? customText : (typeof e === 'string' ? e : input);
+    let imageToSend = customImageB64;
+    if (typeof e === 'object' && e !== null && !e.preventDefault && (e.text !== undefined || e.imageB64 !== undefined)) {
+      textToSend = e.text || '';
+      imageToSend = e.imageB64 || null;
+    }
+
+    const trimmed = (textToSend || '').trim();
+    if ((!trimmed && !imageToSend) || isStreaming || isSaving) return;
 
     const userMsgId = 'temp-user-' + Date.now();
     const asstMsgId = 'temp-asst-' + Date.now();
@@ -165,6 +171,7 @@ export default function App() {
       conversation_id: activeId || '',
       role: 'user',
       content: trimmed,
+      image_url: imageToSend,
       created_at: new Date().toISOString(),
     };
 
@@ -186,7 +193,8 @@ export default function App() {
     try {
       await sendChatMessage({
         conversationId: activeId,
-        message: trimmed,
+        message: trimmed || 'Describe this image',
+        imageB64: imageToSend,
         mode,
         onToolCall: (toolCall) => {
           setMessages((prev) =>

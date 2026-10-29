@@ -60,6 +60,11 @@ TIER_TIMEOUTS = {
 }
 
 
+def is_vision_model(slug: str) -> bool:
+    s = slug.lower()
+    return "vision" in s or "-vl" in s or "_vl" in s or "vl-" in s
+
+
 def _map_exception_to_status(exc: Exception) -> str:
     if isinstance(exc, RateLimitedError):
         return "rate_limited"
@@ -127,10 +132,25 @@ class FallbackRouter:
         mode: Optional[str] = "auto",
         timeout_s: Optional[int] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
+        image_b64: Optional[str] = None,
     ) -> RoutingOutcome:
+        # Check if an image is present
+        has_image = bool(image_b64)
+        if not has_image:
+            for msg in messages:
+                if isinstance(msg, dict):
+                    c = msg.get("content")
+                    if isinstance(c, list) and any(
+                        isinstance(item, dict) and item.get("type") == "image_url" for item in c
+                    ):
+                        has_image = True
+                        break
+
         # Determine tier cascade order based on mode or complexity
         m = (mode or "auto").lower().strip()
-        if m == "fastest":
+        if has_image:
+            tier_order = ["tier2", "tier1", "tier3"]
+        elif m == "fastest":
             tier_order = ["tier1", "tier2", "tier3"]
         elif m in ("power", "balanced"):
             tier_order = ["tier2", "tier3", "tier1"]
@@ -140,7 +160,14 @@ class FallbackRouter:
             last_user_text = ""
             for msg in reversed(messages):
                 if isinstance(msg, dict) and msg.get("role") == "user":
-                    last_user_text = msg.get("content", "")
+                    content = msg.get("content", "")
+                    if isinstance(content, list):
+                        for part in content:
+                            if isinstance(part, dict) and part.get("type") == "text":
+                                last_user_text = part.get("text", "")
+                                break
+                    else:
+                        last_user_text = content
                     break
             classified = classify_complexity(last_user_text)
             if classified == "tier3":
@@ -151,6 +178,10 @@ class FallbackRouter:
                 tier_order = ["tier1", "tier2", "tier3"]
 
         candidates = self.get_candidate_models(force_model=force_model, tier_order=tier_order)
+        if has_image:
+            # Prioritize vision-capable models first
+            candidates = sorted(candidates, key=lambda c: 0 if is_vision_model(c[0]) else 1)
+
         attempts: List[AttemptLog] = []
 
         for attempt_idx, (slug, tier) in enumerate(candidates, start=1):
@@ -186,7 +217,13 @@ class FallbackRouter:
             # 2b. Attempt completion with wall-clock guard
             t0 = time.perf_counter()
             try:
-                result = self.provider.complete(messages, model_slug=slug, timeout_s=candidate_timeout, tools=tools)
+                result = self.provider.complete(
+                    messages,
+                    model_slug=slug,
+                    timeout_s=candidate_timeout,
+                    tools=tools,
+                    image_b64=image_b64,
+                )
                 elapsed_ms = int((time.perf_counter() - t0) * 1000)
                 latency = result.latency_ms if result.latency_ms is not None else elapsed_ms
 

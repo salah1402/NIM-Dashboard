@@ -37,6 +37,7 @@ class LLMProvider(ABC):
         timeout_s: Optional[int] = None,
         max_tokens: Optional[int] = 4096,
         tools: Optional[List[Dict[str, Any]]] = None,
+        image_b64: Optional[str] = None,
     ) -> ProviderResult:
         """Execute chat completion for the given messages and model slug.
 
@@ -72,13 +73,34 @@ class RealProvider(LLMProvider):
         timeout_s: Optional[int] = None,
         max_tokens: Optional[int] = 4096,
         tools: Optional[List[Dict[str, Any]]] = None,
+        image_b64: Optional[str] = None,
     ) -> ProviderResult:
         t0 = time.perf_counter()
         effective_timeout = timeout_s if timeout_s is not None else (self.timeout_s or 30)
         effective_max_tokens = max_tokens if max_tokens is not None else 4096
+
+        # Format messages with vision schema if image_b64 is provided and not already formatted
+        effective_messages = []
+        for i, m in enumerate(messages):
+            if m.get("role") == "user" and i == len(messages) - 1 and image_b64:
+                curr_content = m.get("content", "")
+                if isinstance(curr_content, list):
+                    effective_messages.append(m)
+                else:
+                    url = image_b64 if image_b64.startswith("data:") else f"data:image/jpeg;base64,{image_b64}"
+                    effective_messages.append({
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": curr_content},
+                            {"type": "image_url", "image_url": {"url": url}},
+                        ],
+                    })
+            else:
+                effective_messages.append(m)
+
         create_kwargs: Dict[str, Any] = {
             "model": model_slug,
-            "messages": messages,
+            "messages": effective_messages,
             "stream": False,
             "timeout": effective_timeout,
             "max_tokens": effective_max_tokens,
@@ -156,6 +178,7 @@ class MockProvider(LLMProvider):
         timeout_s: Optional[int] = None,
         max_tokens: Optional[int] = 4096,
         tools: Optional[List[Dict[str, Any]]] = None,
+        image_b64: Optional[str] = None,
     ) -> ProviderResult:
         self.calls.append({
             "model_slug": model_slug,
@@ -163,6 +186,7 @@ class MockProvider(LLMProvider):
             "timeout_s": timeout_s,
             "max_tokens": max_tokens,
             "tools": tools,
+            "image_b64": image_b64,
         })
 
         # Check if there is an active failure plan for this slug
@@ -194,9 +218,18 @@ class MockProvider(LLMProvider):
 
         # Once plan is exhausted or if no plan, succeed immediately with canned reply
         last_user = ""
+        has_image = bool(image_b64)
         for m in reversed(messages):
             if isinstance(m, dict) and m.get("role") == "user":
-                last_user = m.get("content", "")
+                content = m.get("content", "")
+                if isinstance(content, list):
+                    for part in content:
+                        if isinstance(part, dict) and part.get("type") == "text":
+                            last_user = part.get("text", "")
+                        elif isinstance(part, dict) and part.get("type") == "image_url":
+                            has_image = True
+                else:
+                    last_user = content
                 break
 
         # Check if tools are provided and user prompt asks for fibonacci or python calculation
@@ -219,6 +252,14 @@ class MockProvider(LLMProvider):
 
         if has_tool_response:
             canned = "The 50th Fibonacci number is 12586269025. Calculated using Python interpreter."
+            return ProviderResult(
+                content=canned,
+                model_slug=model_slug,
+                latency_ms=10,
+            )
+
+        if has_image:
+            canned = f"The uploaded image displays visual data and code. Analyzed via {model_slug}."
             return ProviderResult(
                 content=canned,
                 model_slug=model_slug,

@@ -53,6 +53,7 @@ export async function deleteConversation(conversationId) {
 export async function sendChatMessage({
   conversationId,
   message,
+  imageB64,
   forceModel,
   mode,
   onToken,
@@ -69,6 +70,7 @@ export async function sendChatMessage({
       body: JSON.stringify({
         conversation_id: conversationId || undefined,
         message,
+        image_b64: imageB64 || undefined,
         force_model: forceModel || undefined,
         mode: mode || 'auto',
       }),

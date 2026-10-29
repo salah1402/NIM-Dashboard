@@ -205,6 +205,8 @@ export default function ChatPane({
 }) {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null); // { file, previewUrl, base64, name, size }
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editPrompt, setEditPrompt] = useState('');
@@ -228,12 +230,41 @@ export default function ChatPane({
     }
   }, [input]);
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedImage({
+        file,
+        previewUrl,
+        base64: reader.result,
+        name: file.name,
+        size: (file.size / 1024).toFixed(0) + ' KB',
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if ((!input.trim() && !selectedImage) || isStreaming || isSaving) return;
+    const promptToSend = input.trim();
+    const imageToSend = selectedImage ? selectedImage.base64 : null;
+    setSelectedImage(null);
+    onSendMessage({ text: promptToSend, imageB64: imageToSend });
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (input.trim() && !isStreaming && !isSaving) {
-        onSendMessage(e);
-      }
+      handleSubmit(e);
     }
   };
 
@@ -452,8 +483,17 @@ export default function ChatPane({
                       </div>
                     </div>
                   ) : (
-                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-[#F0EFEA] border border-[#E5E3DE]/60 text-[#191918] font-sans font-medium">
-                      {cleaned}
+                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-[#F0EFEA] border border-[#E5E3DE]/60 text-[#191918] font-sans font-medium flex flex-col gap-2.5">
+                      {msg.image_url && (
+                        <div className="rounded-xl overflow-hidden border border-[#E5E3DE] max-w-sm max-h-72 bg-white shadow-xs">
+                          <img
+                            src={msg.image_url}
+                            alt="Uploaded preview"
+                            className="w-full h-auto max-h-72 object-contain rounded-xl"
+                          />
+                        </div>
+                      )}
+                      {cleaned && <div>{cleaned}</div>}
                     </div>
                   )
                 ) : (
@@ -571,6 +611,35 @@ export default function ChatPane({
         <div className={`${isArtifactOpen ? 'max-w-2xl' : 'max-w-3xl'} mx-auto transition-all duration-300`}>
           {/* Main Input Box Card */}
           <div className="relative rounded-2xl border border-stone-300 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.05)] focus-within:border-stone-400 focus-within:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all p-3">
+            {/* Image Thumbnail Preview with X remove button */}
+            {selectedImage && (
+              <div className="mb-2.5 relative inline-flex items-center gap-2.5 p-1.5 bg-[#F0EFEA] border border-[#E5E3DE] rounded-xl shadow-xs animate-in fade-in zoom-in-95 duration-150">
+                <div className="w-11 h-11 rounded-lg overflow-hidden bg-white border border-[#E5E3DE] shrink-0">
+                  <img
+                    src={selectedImage.previewUrl}
+                    alt="Upload thumbnail"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col text-left pr-6">
+                  <span className="text-xs font-semibold text-[#191918] max-w-[180px] truncate">
+                    {selectedImage.name}
+                  </span>
+                  <span className="text-[10.5px] text-stone-500 font-mono">
+                    {selectedImage.size} • Vision Model
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedImage(null)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#191918] text-white hover:bg-black rounded-full flex items-center justify-center shadow-xs transition cursor-pointer"
+                  title="Remove image"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+
             {/* Auto-expanding Textarea */}
             <textarea
               ref={textareaRef}
@@ -583,6 +652,8 @@ export default function ChatPane({
                   ? 'Generating response...'
                   : isSaving
                   ? 'Saving to SQLite...'
+                  : selectedImage
+                  ? 'Ask a question about this image...'
                   : 'Reply to NIM Studio...'
               }
               disabled={isStreaming || isSaving}
@@ -592,14 +663,26 @@ export default function ChatPane({
             {/* Input Bottom Action Bar */}
             <div className="flex items-center justify-between pt-2 border-t border-stone-100 mt-1">
               <div className="flex items-center space-x-1.5 relative">
-                {/* Paperclip Icon for future file uploads */}
+                {/* Paperclip Icon for image file uploads */}
                 <button
                   type="button"
-                  title="Attach file (coming soon)"
-                  className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach image for vision analysis"
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    selectedImage
+                      ? 'text-[#C96442] bg-[#C96442]/10'
+                      : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
+                  }`}
                 >
                   <Paperclip className="w-4 h-4" />
                 </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
 
                 {/* Tools & MCP Button */}
                 <div className="relative">
@@ -705,8 +788,8 @@ export default function ChatPane({
               {/* Upward Send Button (Terracotta / Dark Accent) */}
               <button
                 type="button"
-                onClick={onSendMessage}
-                disabled={!input.trim() || isStreaming || isSaving}
+                onClick={handleSubmit}
+                disabled={(!input.trim() && !selectedImage) || isStreaming || isSaving}
                 className="w-8 h-8 rounded-xl bg-[#C96442] hover:bg-[#B35536] disabled:bg-stone-200 disabled:text-stone-400 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
                 title="Send message"
               >

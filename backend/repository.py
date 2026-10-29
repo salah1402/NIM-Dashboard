@@ -73,6 +73,7 @@ def add_message(
     model_slug: Optional[str] = None,
     latency_ms: Optional[float] = None,
     fallback_count: Optional[int] = 0,
+    image_url: Optional[str] = None,
 ) -> Message:
     latency_int = int(round(latency_ms)) if latency_ms is not None else None
     msg = Message(
@@ -80,6 +81,7 @@ def add_message(
         conversation_id=conversation_id,
         role=role,
         content=content,
+        image_url=image_url,
         model_slug=model_slug,
         latency_ms=latency_int,
         fallback_count=fallback_count or 0,

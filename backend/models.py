@@ -42,6 +42,7 @@ class Message(Base):
     )
     role = Column(String(32), nullable=False)
     content = Column(Text, nullable=False)
+    image_url = Column(Text, nullable=True)
     model_slug = Column(Text, nullable=True)
     latency_ms = Column(Integer, nullable=True)
     fallback_count = Column(Integer, nullable=True, default=0)
