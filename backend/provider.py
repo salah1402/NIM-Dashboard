@@ -23,6 +23,7 @@ class ProviderResult:
     content: str
     model_slug: str
     latency_ms: int
+    tool_calls: Optional[List[Dict[str, Any]]] = None
 
 
 class LLMProvider(ABC):
@@ -35,6 +36,7 @@ class LLMProvider(ABC):
         model_slug: str,
         timeout_s: Optional[int] = None,
         max_tokens: Optional[int] = 4096,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> ProviderResult:
         """Execute chat completion for the given messages and model slug.
 
@@ -69,25 +71,44 @@ class RealProvider(LLMProvider):
         model_slug: str,
         timeout_s: Optional[int] = None,
         max_tokens: Optional[int] = 4096,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> ProviderResult:
         t0 = time.perf_counter()
         effective_timeout = timeout_s if timeout_s is not None else (self.timeout_s or 30)
         effective_max_tokens = max_tokens if max_tokens is not None else 4096
+        create_kwargs: Dict[str, Any] = {
+            "model": model_slug,
+            "messages": messages,
+            "stream": False,
+            "timeout": effective_timeout,
+            "max_tokens": effective_max_tokens,
+        }
+        if tools:
+            create_kwargs["tools"] = tools
         try:
-            resp = self.client.chat.completions.create(
-                model=model_slug,
-                messages=messages,
-                stream=False,
-                timeout=effective_timeout,
-                max_tokens=effective_max_tokens,
-            )
+            resp = self.client.chat.completions.create(**create_kwargs)
             elapsed_ms = int((time.perf_counter() - t0) * 1000)
             msg = resp.choices[0].message
             content = msg.content or getattr(msg, "reasoning_content", None) or ""
+
+            parsed_tool_calls = None
+            if getattr(msg, "tool_calls", None):
+                parsed_tool_calls = []
+                for tc in msg.tool_calls:
+                    parsed_tool_calls.append({
+                        "id": getattr(tc, "id", None),
+                        "type": getattr(tc, "type", "function"),
+                        "function": {
+                            "name": getattr(tc.function, "name", ""),
+                            "arguments": getattr(tc.function, "arguments", "{}"),
+                        },
+                    })
+
             return ProviderResult(
                 content=content,
                 model_slug=model_slug,
                 latency_ms=elapsed_ms,
+                tool_calls=parsed_tool_calls,
             )
         except openai.AuthenticationError as e:
             logger.error("AuthenticationError on slug %s: %s", model_slug, e)
@@ -134,8 +155,15 @@ class MockProvider(LLMProvider):
         model_slug: str,
         timeout_s: Optional[int] = None,
         max_tokens: Optional[int] = 4096,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> ProviderResult:
-        self.calls.append({"model_slug": model_slug, "messages": messages, "timeout_s": timeout_s, "max_tokens": max_tokens})
+        self.calls.append({
+            "model_slug": model_slug,
+            "messages": messages,
+            "timeout_s": timeout_s,
+            "max_tokens": max_tokens,
+            "tools": tools,
+        })
 
         # Check if there is an active failure plan for this slug
         if model_slug in self.fail_plan and self.fail_plan[model_slug]:
@@ -170,6 +198,32 @@ class MockProvider(LLMProvider):
             if isinstance(m, dict) and m.get("role") == "user":
                 last_user = m.get("content", "")
                 break
+
+        # Check if tools are provided and user prompt asks for fibonacci or python calculation
+        has_tool_response = any(isinstance(m, dict) and m.get("role") == "tool" for m in messages)
+        if tools and not has_tool_response and any(k in last_user.lower() for k in ("fibonacci", "python", "50th")):
+            import json
+            return ProviderResult(
+                content="",
+                model_slug=model_slug,
+                latency_ms=10,
+                tool_calls=[{
+                    "id": "call_mock_1",
+                    "type": "function",
+                    "function": {
+                        "name": "execute_python",
+                        "arguments": json.dumps({"code": "a, b = 0, 1\nfor _ in range(50): a, b = b, a + b\nprint(a)"}),
+                    },
+                }],
+            )
+
+        if has_tool_response:
+            canned = "The 50th Fibonacci number is 12586269025. Calculated using Python interpreter."
+            return ProviderResult(
+                content=canned,
+                model_slug=model_slug,
+                latency_ms=10,
+            )
 
         canned = (
             f"Hello! This is a mock response from {model_slug}. "

@@ -9,14 +9,14 @@ export default function Sidebar({
   isLoading,
 }) {
   return (
-    <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-full select-none shadow-sm">
+    <aside className="w-72 bg-[#F9F9F8] border-r border-[#E5E3DE] flex flex-col h-full select-none">
       {/* New Chat Button */}
-      <div className="p-3.5 border-b border-slate-200">
+      <div className="p-3.5 border-b border-[#E5E3DE]">
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm py-2.5 px-4 rounded-xl transition shadow-sm cursor-pointer"
+          className="w-full flex items-center justify-center space-x-2 bg-white hover:bg-[#F0EFEA] text-[#1D1B1B] font-medium text-sm py-2.5 px-4 rounded-xl border border-[#E5E3DE] hover:border-stone-400 shadow-xs transition cursor-pointer"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
           </svg>
           <span>New Chat</span>
@@ -26,11 +26,11 @@ export default function Sidebar({
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
         {isLoading ? (
-          <div className="text-center py-8 text-xs text-slate-400 animate-pulse">
+          <div className="text-center py-8 text-xs text-stone-400 animate-pulse">
             Loading conversations...
           </div>
         ) : conversations.length === 0 ? (
-          <div className="text-center py-10 px-4 text-xs text-slate-400">
+          <div className="text-center py-10 px-4 text-xs text-stone-400">
             No conversations yet. Start a new chat to begin!
           </div>
         ) : (
@@ -42,14 +42,14 @@ export default function Sidebar({
                 onClick={() => onSelectConversation(conv.id)}
                 className={`group flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-colors ${
                   isActive
-                    ? 'bg-slate-100 text-slate-900 font-semibold border border-slate-200 shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-white text-[#1D1B1B] font-semibold border border-[#E5E3DE] shadow-xs'
+                    : 'text-stone-600 hover:bg-[#F0EFEA] hover:text-[#1D1B1B]'
                 }`}
               >
                 <div className="flex items-center space-x-2.5 min-w-0 flex-1">
                   <svg
                     className={`w-4 h-4 flex-shrink-0 ${
-                      isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'
+                      isActive ? 'text-[#C96442]' : 'text-stone-400 group-hover:text-stone-600'
                     }`}
                     fill="none"
                     stroke="currentColor"
@@ -62,7 +62,7 @@ export default function Sidebar({
                       d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                     />
                   </svg>
-                  <span className="truncate font-medium text-xs text-slate-800">
+                  <span className="truncate font-medium text-xs text-stone-800">
                     {conv.title || 'New chat'}
                   </span>
                 </div>
@@ -71,8 +71,8 @@ export default function Sidebar({
                   <span
                     className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
                       isActive
-                        ? 'bg-white text-emerald-700 border border-emerald-200 font-semibold'
-                        : 'bg-slate-100 text-slate-500'
+                        ? 'bg-[#F0EFEA] text-stone-700 font-medium'
+                        : 'bg-stone-200/50 text-stone-500'
                     }`}
                   >
                     {conv.message_count ?? 0}
@@ -84,7 +84,7 @@ export default function Sidebar({
                         onDeleteConversation(conv.id);
                       }}
                       title="Delete conversation"
-                      className="opacity-0 group-hover:opacity-100 hover:text-rose-600 text-slate-400 p-1 rounded transition"
+                      className="opacity-0 group-hover:opacity-100 hover:text-rose-600 text-stone-400 p-1 rounded transition"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -104,9 +104,9 @@ export default function Sidebar({
       </div>
 
       {/* Footer Info */}
-      <div className="p-3 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between bg-slate-50/50">
+      <div className="p-3 border-t border-[#E5E3DE] text-[11px] text-stone-500 flex items-center justify-between bg-[#F9F9F8]">
         <span>SQLite: nim.db</span>
-        <span className="text-emerald-600 font-mono font-medium">Phase 1 DB</span>
+        <span className="text-[#C96442] font-mono font-medium">Coding Agent</span>
       </div>
     </aside>
   );

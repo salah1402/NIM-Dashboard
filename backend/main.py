@@ -24,6 +24,7 @@ from backend.config import (
 )
 from backend.discovery import discover_live_models, DiscoveryResult
 from backend import repository
+from backend.tools import PYTHON_TOOL_SCHEMA, execute_python
 
 logger = logging.getLogger(__name__)
 
@@ -272,13 +273,66 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                 current_msgs = repository.list_messages(stream_db, conversation_id)
                 msg_history = [{"role": m.role, "content": m.content} for m in current_msgs]
 
-                # Run cascade routing (non-streaming)
-                outcome = router.route(
-                    messages=msg_history,
-                    conversation_id=conversation_id,
-                    force_model=request.force_model,
-                    mode=request.mode,
-                )
+                # Run cascade routing with python tool execution loop
+                tools_list = [PYTHON_TOOL_SCHEMA]
+                total_latency_ms = 0
+                all_attempts = []
+                final_outcome = None
+
+                for _ in range(3):
+                    outcome = router.route(
+                        messages=msg_history,
+                        conversation_id=conversation_id,
+                        force_model=request.force_model,
+                        mode=request.mode,
+                        tools=tools_list,
+                    )
+                    total_latency_ms += outcome.latency_ms
+                    all_attempts.extend(outcome.attempts)
+                    final_outcome = outcome
+
+                    if outcome.tool_calls:
+                        msg_history.append({
+                            "role": "assistant",
+                            "content": outcome.content or "",
+                            "tool_calls": outcome.tool_calls,
+                        })
+
+                        for tc in outcome.tool_calls:
+                            func = tc.get("function", {})
+                            fn_name = func.get("name")
+                            raw_args = func.get("arguments", "{}")
+                            try:
+                                parsed_args = json.loads(raw_args) if isinstance(raw_args, str) else raw_args
+                            except Exception:
+                                parsed_args = {}
+                            code = parsed_args.get("code", "")
+
+                            if fn_name == "execute_python":
+                                result = execute_python(code)
+                            else:
+                                result = f"Unknown tool: {fn_name}"
+
+                            # Emit SSE tool_call event
+                            tool_payload = {
+                                "event": "tool_call",
+                                "name": fn_name,
+                                "code": code,
+                                "result": result,
+                            }
+                            yield f"data: {json.dumps(tool_payload)}\n\n"
+                            await asyncio.sleep(0.02)
+
+                            msg_history.append({
+                                "role": "tool",
+                                "tool_call_id": tc.get("id", "call_1"),
+                                "content": result,
+                            })
+                        continue
+                    else:
+                        break
+
+                outcome = final_outcome
 
                 # Persist successful assistant message
                 assistant_msg = repository.add_message(
@@ -287,26 +341,26 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                     role="assistant",
                     content=outcome.content,
                     model_slug=outcome.model_slug,
-                    latency_ms=outcome.latency_ms,
-                    fallback_count=outcome.fallback_count,
+                    latency_ms=total_latency_ms,
+                    fallback_count=len(all_attempts) - 1 if all_attempts else 0,
                 )
                 repository.touch_conversation(stream_db, conversation_id)
 
                 # Link routing logs to this message
-                log_ids = [a.log_id for a in outcome.attempts if a.log_id]
+                log_ids = [a.log_id for a in all_attempts if a.log_id]
                 repository.link_routing_logs_to_message(stream_db, log_ids, assistant_msg.id)
 
                 # 1. Emit SSE "meta" event first
                 attempts_meta = [
                     {"slug": a.model_slug, "status": a.status}
-                    for a in outcome.attempts
+                    for a in all_attempts
                 ]
                 meta_payload = {
                     "event": "meta",
                     "conversation_id": conversation_id,
                     "model_slug": outcome.model_slug,
                     "tier": outcome.tier,
-                    "fallback_count": outcome.fallback_count,
+                    "fallback_count": len(all_attempts) - 1 if all_attempts else 0,
                     "attempts": attempts_meta,
                 }
                 yield f"data: {json.dumps(meta_payload)}\n\n"

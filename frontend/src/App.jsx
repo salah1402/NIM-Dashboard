@@ -148,6 +148,18 @@ export default function App() {
         conversationId: activeId,
         message: trimmed,
         mode,
+        onToolCall: (toolCall) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === asstMsgId
+                ? {
+                    ...m,
+                    tool_calls: [...(m.tool_calls || []), toolCall],
+                  }
+                : m
+            )
+          );
+        },
         onToken: (token) => {
           setMessages((prev) =>
             prev.map((m) =>
@@ -218,31 +230,28 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
       {/* Top Header */}
-      <header className="border-b border-slate-200 bg-white px-6 py-3 flex items-center justify-between z-10 shadow-sm">
+      <header className="border-b border-[#E5E3DE] bg-[#F9F9F8] px-6 py-2.5 flex items-center justify-between z-10">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center font-bold text-emerald-600">
+          <div className="w-8 h-8 rounded-lg bg-[#F0EFEA] border border-[#E5E3DE] flex items-center justify-center font-serif font-bold text-[#C96442]">
             N
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-base font-semibold tracking-wide text-slate-900">NIM Dashboard</h1>
-              <span className="text-[10px] font-mono uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
-                Phase 5
-              </span>
+              <h1 className="text-base font-semibold tracking-tight text-[#1D1B1B]">NIM Dashboard</h1>
             </div>
-            <p className="text-xs text-slate-500">Self-hosted NVIDIA NIM Multi-Slug Cascade Router</p>
+            <p className="text-xs text-stone-500">Autonomous Coding Agent & Multi-Slug Cascade Router</p>
           </div>
         </div>
 
         {/* View Switcher Toggle */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <div className="flex items-center bg-[#F0EFEA] p-1 rounded-xl border border-[#E5E3DE]">
           <button
             type="button"
             onClick={() => setView('chat')}
             className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               view === 'chat'
-                ? 'bg-white text-slate-900 font-semibold shadow-sm'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
+                ? 'bg-white text-[#1D1B1B] font-medium shadow-xs'
+                : 'text-stone-500 hover:text-[#1D1B1B] hover:bg-stone-200/40'
             }`}
           >
             <span>💬 Chat</span>
@@ -252,8 +261,8 @@ export default function App() {
             onClick={() => setView('dashboard')}
             className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               view === 'dashboard'
-                ? 'bg-white text-slate-900 font-semibold shadow-sm'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
+                ? 'bg-white text-[#1D1B1B] font-medium shadow-xs'
+                : 'text-stone-500 hover:text-[#1D1B1B] hover:bg-stone-200/40'
             }`}
           >
             <span>📊 Dashboard</span>
@@ -261,11 +270,11 @@ export default function App() {
         </div>
 
         <div className="flex items-center space-x-3 text-xs font-mono">
-          <div className="hidden sm:flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600">
-            <span className="text-slate-400">Rate Limit:</span>
-            <span className="text-emerald-600 font-semibold">40 RPM / Slug</span>
+          <div className="hidden sm:flex items-center space-x-1.5 bg-white px-3 py-1.5 rounded-lg border border-[#E5E3DE] text-stone-600 shadow-xs">
+            <span className="text-stone-400">Rate Limit:</span>
+            <span className="text-emerald-700 font-semibold">40 RPM / Slug</span>
           </div>
-          <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-lg border border-[#E5E3DE] shadow-xs">
             <span
               className={`w-2 h-2 rounded-full ${
                 backendHealth === 'connected'
@@ -273,7 +282,7 @@ export default function App() {
                   : 'bg-rose-500'
               }`}
             />
-            <span className="text-slate-600">
+            <span className="text-stone-600">
               API: {backendHealth === 'connected' ? '8000 OK' : backendHealth}
             </span>
           </div>

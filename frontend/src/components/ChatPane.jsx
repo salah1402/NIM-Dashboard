@@ -67,6 +67,73 @@ function CodeBlock({ language, value }) {
   );
 }
 
+function ToolExecutionCard({ toolCall }) {
+  const [copied, setCopied] = useState(false);
+  const code = toolCall.code || '';
+  const result = toolCall.result || '';
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-3 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 text-stone-100 shadow-md font-mono text-xs not-prose w-full">
+      {/* Tool Header */}
+      <div className="flex items-center justify-between px-3.5 py-2 bg-stone-900 border-b border-stone-800">
+        <div className="flex items-center space-x-2">
+          <span className="text-base">🛠️</span>
+          <span className="font-sans font-semibold text-stone-200 text-xs">
+            Python Interpreter
+          </span>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-400 font-sans font-medium">
+            Executed
+          </span>
+        </div>
+        <button
+          onClick={handleCopyCode}
+          type="button"
+          className="flex items-center space-x-1 text-[11px] text-stone-400 hover:text-white transition cursor-pointer px-2 py-0.5 rounded bg-stone-800 hover:bg-stone-700"
+          title="Copy Python code"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3 h-3 text-emerald-400" />
+              <span className="text-emerald-400 font-medium">Copied</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3 h-3 text-stone-400" />
+              <span>Copy Code</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Code Section */}
+      <div className="p-3 bg-stone-950/90 text-stone-200 border-b border-stone-800/80 overflow-x-auto leading-relaxed">
+        <div className="text-[10px] uppercase tracking-wider text-stone-500 font-sans font-semibold mb-1">
+          Python Input
+        </div>
+        <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-[12px]">
+          <code>{code}</code>
+        </pre>
+      </div>
+
+      {/* Stdout Result Section */}
+      <div className="p-3 bg-black/50 text-emerald-400 overflow-x-auto leading-relaxed">
+        <div className="text-[10px] uppercase tracking-wider text-stone-500 font-sans font-semibold mb-1">
+          Output (stdout)
+        </div>
+        <pre className="!bg-transparent !p-0 !m-0 !border-0 font-mono text-[12px] whitespace-pre-wrap">
+          <code>{result || '(no output)'}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatPane({
   conversation,
   messages,
@@ -287,6 +354,15 @@ export default function ChatPane({
                 ) : (
                   /* Assistant Message: No background, Serif Typography */
                   <div className="w-full max-w-full">
+                    {/* Render Tool Execution Cards if this message executed tools */}
+                    {msg.tool_calls && msg.tool_calls.length > 0 && (
+                      <div className="space-y-2 mb-3">
+                        {msg.tool_calls.map((tc, tcIdx) => (
+                          <ToolExecutionCard key={tcIdx} toolCall={tc} />
+                        ))}
+                      </div>
+                    )}
+
                     {cleaned ? (
                       <div className="prose prose-stone max-w-none font-serif text-[#1D1B1B] text-[15.5px] leading-[1.75] prose-headings:font-serif prose-headings:font-normal prose-headings:text-[#1D1B1B] prose-p:my-3 prose-li:my-1 prose-pre:my-3">
                         <ReactMarkdown
@@ -443,16 +519,19 @@ export default function ChatPane({
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <div className="space-y-0.5">
-                        <div className="px-2 py-1.5 rounded-lg text-stone-700 hover:bg-stone-50 flex items-center justify-between">
-                          <span>Code Interpreter</span>
-                          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">Soon</span>
+                      <div className="space-y-1">
+                        <div className="px-2 py-1.5 rounded-lg text-stone-800 bg-stone-50 border border-stone-200/80 flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="font-medium text-xs">Code Interpreter</span>
+                          </div>
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold">Active</span>
                         </div>
-                        <div className="px-2 py-1.5 rounded-lg text-stone-700 hover:bg-stone-50 flex items-center justify-between">
+                        <div className="px-2 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
                           <span>Web Search</span>
                           <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">Soon</span>
                         </div>
-                        <div className="px-2 py-1.5 rounded-lg text-stone-700 hover:bg-stone-50 flex items-center justify-between">
+                        <div className="px-2 py-1.5 rounded-lg text-stone-600 hover:bg-stone-50 flex items-center justify-between">
                           <span>File Context</span>
                           <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">Soon</span>
                         </div>

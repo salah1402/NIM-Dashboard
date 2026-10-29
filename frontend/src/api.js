@@ -56,6 +56,7 @@ export async function sendChatMessage({
   forceModel,
   mode,
   onToken,
+  onToolCall,
   onComplete,
   onError,
 }) {
@@ -101,6 +102,9 @@ export async function sendChatMessage({
           if (!jsonStr) continue;
           try {
             const data = JSON.parse(jsonStr);
+            if (data.event === 'tool_call' && onToolCall) {
+              onToolCall(data);
+            }
             if (data.token) {
               onToken(data.token);
             }

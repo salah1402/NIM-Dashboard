@@ -50,6 +50,7 @@ class RoutingOutcome:
     latency_ms: int
     attempts: List[AttemptLog]
     fallback_count: int
+    tool_calls: Optional[List[Dict[str, Any]]] = None
 
 
 TIER_TIMEOUTS = {
@@ -125,6 +126,7 @@ class FallbackRouter:
         force_model: Optional[str] = None,
         mode: Optional[str] = "auto",
         timeout_s: Optional[int] = None,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> RoutingOutcome:
         # Determine tier cascade order based on mode or complexity
         m = (mode or "auto").lower().strip()
@@ -184,7 +186,7 @@ class FallbackRouter:
             # 2b. Attempt completion with wall-clock guard
             t0 = time.perf_counter()
             try:
-                result = self.provider.complete(messages, model_slug=slug, timeout_s=candidate_timeout)
+                result = self.provider.complete(messages, model_slug=slug, timeout_s=candidate_timeout, tools=tools)
                 elapsed_ms = int((time.perf_counter() - t0) * 1000)
                 latency = result.latency_ms if result.latency_ms is not None else elapsed_ms
 
@@ -219,6 +221,7 @@ class FallbackRouter:
                     latency_ms=latency,
                     attempts=attempts,
                     fallback_count=len(attempts) - 1,
+                    tool_calls=result.tool_calls,
                 )
 
             except AuthError:
