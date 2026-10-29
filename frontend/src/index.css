@@ -4,8 +4,8 @@
 
 body {
   margin: 0;
-  background-color: #030712;
-  color: #f3f4f6;
+  background-color: #F9F9F8;
+  color: #1D1B1B;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -13,21 +13,21 @@ code, pre {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Custom scrollbars for dark dashboard */
+/* Custom scrollbars for clean light dashboard */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #F9F9F8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1f2937;
+  background: #E5E3DE;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: #D5D3CE;
 }

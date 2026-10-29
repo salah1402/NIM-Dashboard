@@ -206,7 +206,7 @@ def list_conversations_endpoint(db = Depends(get_db)):
 def get_conversation_messages_endpoint(conversation_id: str, db = Depends(get_db)):
     conv = repository.get_conversation(db, conversation_id)
     if not conv:
-        raise HTTPException(status_code=404, detail="Conversation not found")
+        return []
     messages = repository.list_messages(db, conversation_id)
     out = []
     for m in messages:
@@ -253,12 +253,14 @@ async def chat_endpoint(request: ChatRequest, db = Depends(get_db)):
     if not user_message:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    # Step a: Get or create conversation
+    # Step a: Get or create conversation (gracefully auto-create if ID not found)
+    conv = None
     if request.conversation_id:
         conv = repository.get_conversation(db, request.conversation_id)
         if not conv:
-            raise HTTPException(status_code=404, detail=f"Conversation '{request.conversation_id}' not found")
-    else:
+            # Gracefully recover missing conversation instead of raising 404
+            conv = repository.create_conversation(db, title="New chat", conversation_id=request.conversation_id)
+    if not conv:
         conv = repository.create_conversation(db, title="New chat")
 
     conversation_id = conv.id

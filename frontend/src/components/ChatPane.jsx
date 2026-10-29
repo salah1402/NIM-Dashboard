@@ -341,19 +341,19 @@ export default function ChatPane({
   const currentModeObj = modes.find((m) => m.id === mode) || modes[0];
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#09090b] text-zinc-100 overflow-hidden select-text font-sans">
+    <div className="flex-1 flex flex-col h-full bg-[#F9F9F8] text-[#1D1B1B] overflow-hidden select-text font-sans">
       {/* Messages Scroll Area */}
       <div className={`flex-1 overflow-y-auto px-4 pt-6 pb-14 ${isArtifactOpen ? 'max-w-2xl' : 'max-w-3xl'} w-full mx-auto space-y-6 transition-all duration-300`}>
         {messages.length === 0 ? (
           /* Empty / Welcome Hero Canvas */
           <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-xs mb-5">
+            <div className="w-14 h-14 rounded-2xl bg-white border border-[#E5E3DE] flex items-center justify-center shadow-xs mb-5">
               <ClaudeFlower className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-normal text-zinc-100 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-serif font-normal text-[#1D1B1B] tracking-tight">
               {conversation ? conversation.title : 'What would you like to build or explore today?'}
             </h2>
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-md mt-2.5 mb-8 font-sans">
+            <p className="text-xs sm:text-sm text-stone-500 max-w-md mt-2.5 mb-8 font-sans">
               Autonomous Python agent and live Artifact rendering powered by NVIDIA NIM flagship cascade routing.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl text-left">
@@ -385,16 +385,16 @@ export default function ChatPane({
                     setInput(item.prompt);
                     textareaRef.current?.focus();
                   }}
-                  className="p-3.5 text-xs text-zinc-200 bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800 hover:border-zinc-700 rounded-xl shadow-xs transition-all text-left cursor-pointer group flex flex-col justify-between"
+                  className="p-3.5 text-xs text-stone-800 bg-white hover:bg-[#F4F3EE] border border-[#E5E3DE] hover:border-stone-400 rounded-xl shadow-xs transition-all text-left cursor-pointer group flex flex-col justify-between"
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] uppercase font-mono font-semibold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
+                    <span className="text-[10px] uppercase font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                       {item.tag}
                     </span>
-                    <Sparkles className="w-3.5 h-3.5 text-zinc-500 group-hover:text-emerald-400 transition-colors" />
+                    <Sparkles className="w-3.5 h-3.5 text-stone-400 group-hover:text-emerald-600 transition-colors" />
                   </div>
-                  <div className="font-semibold text-zinc-200 text-xs mb-1">{item.title}</div>
-                  <div className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                  <div className="font-semibold text-stone-900 text-xs mb-1">{item.title}</div>
+                  <div className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
                     "{item.prompt}"
                   </div>
                 </button>
@@ -459,9 +459,9 @@ export default function ChatPane({
                       type="button"
                       onClick={() => handleStartEdit(msg)}
                       title="Edit message"
-                      className="inline-flex items-center space-x-1 text-[11px] text-zinc-400 hover:text-zinc-100 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-md shadow-xs cursor-pointer transition"
+                      className="inline-flex items-center space-x-1 text-[11px] text-stone-500 hover:text-stone-900 bg-white border border-[#E5E3DE] px-2 py-0.5 rounded-md shadow-xs cursor-pointer transition"
                     >
-                      <Pencil className="w-3 h-3 text-zinc-400" />
+                      <Pencil className="w-3 h-3 text-stone-400" />
                       <span>Edit</span>
                     </button>
                   </div>
@@ -469,22 +469,22 @@ export default function ChatPane({
 
                 {/* Assistant Message Header: Model / Latency badge with Fallback struggle */}
                 {!isUser && msg.model_slug && (
-                  <div className="flex items-center space-x-2 mb-2 px-0.5 text-[11px] text-zinc-400 font-sans">
+                  <div className="flex items-center space-x-2 mb-2 px-0.5 text-[11px] text-stone-500 font-sans">
                     <div
                       className={`inline-flex items-center font-mono px-2 py-0.5 rounded-md font-medium text-[11px] transition-colors ${
                         isFailed
-                          ? 'bg-rose-950/60 text-rose-300 border border-rose-800/60'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
                           : fallbackCount > 0
-                          ? 'bg-amber-950/60 text-amber-300 border border-amber-800/60 shadow-2xs'
-                          : 'bg-zinc-900 text-zinc-300 border border-zinc-800'
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs'
+                          : 'bg-[#F0EFEA] text-stone-700 border border-[#E5E3DE]'
                       }`}
                       title={fallbackTooltip || undefined}
                     >
-                      {fallbackCount > 0 && <span className="mr-1 text-amber-400 font-bold">⚡</span>}
+                      {fallbackCount > 0 && <span className="mr-1 text-amber-600 font-bold">⚡</span>}
                       <span>{msg.model_slug}</span>
                       {fallbackCount > 0 && (
                         <span
-                          className="ml-1.5 text-[10.5px] text-amber-400 font-semibold cursor-help"
+                          className="ml-1.5 text-[10.5px] text-amber-700 font-semibold cursor-help"
                           title={fallbackTooltip}
                         >
                           ({fallbackCount} {fallbackCount === 1 ? 'fallback' : 'fallbacks'})
@@ -492,7 +492,7 @@ export default function ChatPane({
                       )}
                     </div>
                     {msg.latency_ms != null && (
-                      <span className="font-mono text-zinc-500 text-[10.5px]">
+                      <span className="font-mono text-stone-400 text-[10.5px]">
                         {(msg.latency_ms / 1000).toFixed(1)}s
                       </span>
                     )}
@@ -501,15 +501,15 @@ export default function ChatPane({
 
                 {/* Failed Error Bubble */}
                 {isFailed ? (
-                  <div className="max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-xs bg-rose-950/60 border border-rose-800/60 text-rose-200 flex items-start space-x-3">
-                    <div className="p-1 rounded-md bg-rose-900/60 text-rose-400 shrink-0 mt-0.5">
+                  <div className="max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-xs bg-rose-50 border border-rose-200 text-rose-800 flex items-start space-x-3">
+                    <div className="p-1 rounded-md bg-rose-100 text-rose-600 shrink-0 mt-0.5">
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                     <div className="flex-1 space-y-0.5">
-                      <div className="font-semibold text-rose-300 text-xs uppercase tracking-wider">
+                      <div className="font-semibold text-rose-900 text-xs uppercase tracking-wider">
                         Request Failed
                       </div>
-                      <div className="text-rose-200 text-xs font-normal">
+                      <div className="text-rose-700 text-xs font-normal">
                         {errorText || 'All candidate models failed in cascade.'}
                       </div>
                     </div>
@@ -517,34 +517,34 @@ export default function ChatPane({
                 ) : isUser ? (
                   /* User Message Bubble with Inline Edit Support */
                   editingMsgId === msg.id ? (
-                    <div className="w-full max-w-xl bg-zinc-900 border border-zinc-700 rounded-2xl p-3 shadow-md">
+                    <div className="w-full max-w-xl bg-white border border-[#E5E3DE] rounded-2xl p-3 shadow-md">
                       <textarea
                         value={editPrompt}
                         onChange={(e) => setEditPrompt(e.target.value)}
                         rows={3}
-                        className="w-full text-sm text-zinc-100 bg-transparent focus:outline-none resize-none leading-relaxed"
+                        className="w-full text-sm text-stone-900 bg-transparent focus:outline-none resize-none leading-relaxed"
                       />
-                      <div className="flex items-center justify-end space-x-2 mt-2 pt-2 border-t border-zinc-800 text-xs">
+                      <div className="flex items-center justify-end space-x-2 mt-2 pt-2 border-t border-[#E5E3DE] text-xs">
                         <button
                           type="button"
                           onClick={() => setEditingMsgId(null)}
-                          className="px-3 py-1 rounded-lg text-zinc-400 hover:bg-zinc-800 transition cursor-pointer"
+                          className="px-3 py-1 rounded-lg text-stone-500 hover:bg-[#F0EFEA] transition cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={handleSaveEdit}
-                          className="px-3.5 py-1 rounded-lg bg-zinc-100 hover:bg-white text-zinc-900 font-medium shadow-xs transition cursor-pointer"
+                          className="px-3.5 py-1 rounded-lg bg-stone-900 hover:bg-black text-white font-medium shadow-xs transition cursor-pointer"
                         >
                           Save & Submit
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-zinc-800/90 border border-zinc-700/80 text-zinc-100 font-sans font-medium flex flex-col gap-2.5">
+                    <div className="max-w-2xl px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed break-words bg-[#F0EFEA] border border-[#E5E3DE]/80 text-[#1D1B1B] font-sans font-medium flex flex-col gap-2.5">
                       {msg.image_url && (
-                        <div className="rounded-xl overflow-hidden border border-zinc-700 max-w-sm max-h-72 bg-zinc-950 shadow-xs">
+                        <div className="rounded-xl overflow-hidden border border-[#E5E3DE] max-w-sm max-h-72 bg-white shadow-xs">
                           <img
                             src={msg.image_url}
                             alt="Uploaded preview"
@@ -568,7 +568,7 @@ export default function ChatPane({
                     )}
 
                     {cleaned ? (
-                      <div className="prose prose-invert prose-zinc max-w-none font-serif text-zinc-200 text-[15.5px] leading-[1.78] prose-headings:font-sans prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-zinc-100 prose-p:my-2.5 prose-li:my-1 prose-pre:my-3">
+                      <div className="prose prose-stone max-w-none font-serif text-[#1D1B1B] text-[15.5px] leading-[1.78] prose-headings:font-sans prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-[#1D1B1B] prose-p:my-2.5 prose-li:my-1 prose-pre:my-3">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
@@ -576,46 +576,46 @@ export default function ChatPane({
                               return <>{children}</>;
                             },
                             h1({ children }) {
-                              return <h1 className="text-xl font-sans font-bold text-zinc-100 mt-6 mb-3 tracking-tight">{children}</h1>;
+                              return <h1 className="text-xl font-sans font-bold text-[#1D1B1B] mt-6 mb-3 tracking-tight">{children}</h1>;
                             },
                             h2({ children }) {
-                              return <h2 className="text-base font-sans font-semibold text-zinc-100 mt-5 mb-2 tracking-tight border-b border-zinc-800/80 pb-1">{children}</h2>;
+                              return <h2 className="text-base font-sans font-semibold text-[#1D1B1B] mt-5 mb-2 tracking-tight border-b border-[#E5E3DE] pb-1">{children}</h2>;
                             },
                             h3({ children }) {
-                              return <h3 className="text-sm font-sans font-semibold text-zinc-200 mt-4 mb-1.5 tracking-tight">{children}</h3>;
+                              return <h3 className="text-sm font-sans font-semibold text-stone-800 mt-4 mb-1.5 tracking-tight">{children}</h3>;
                             },
                             p({ children }) {
-                              return <p className="my-2.5 leading-[1.8] text-zinc-200">{children}</p>;
+                              return <p className="my-2.5 leading-[1.8] text-[#1D1B1B]">{children}</p>;
                             },
                             hr() {
-                              return <hr className="my-5 border-zinc-800/80" />;
+                              return <hr className="my-5 border-[#E5E3DE]" />;
                             },
                             ul({ children }) {
-                              return <ul className="my-2.5 space-y-1 list-disc pl-5 font-serif text-zinc-200 leading-[1.75]">{children}</ul>;
+                              return <ul className="my-2.5 space-y-1 list-disc pl-5 font-serif text-[#1D1B1B] leading-[1.75]">{children}</ul>;
                             },
                             ol({ children }) {
-                              return <ol className="my-2.5 space-y-1 list-decimal pl-5 font-serif text-zinc-200 leading-[1.75]">{children}</ol>;
+                              return <ol className="my-2.5 space-y-1 list-decimal pl-5 font-serif text-[#1D1B1B] leading-[1.75]">{children}</ol>;
                             },
                             li({ children }) {
-                              return <li className="pl-1">{children}</li>;
+                              return <li className="pl-1 text-[#1D1B1B]">{children}</li>;
                             },
                             strong({ children }) {
-                              return <strong className="font-semibold text-zinc-100 font-sans">{children}</strong>;
+                              return <strong className="font-semibold text-stone-900 font-sans">{children}</strong>;
                             },
                             blockquote({ children }) {
-                              return <blockquote className="border-l-2 border-emerald-500/70 pl-3.5 my-3 text-zinc-300 italic">{children}</blockquote>;
+                              return <blockquote className="border-l-2 border-emerald-500 pl-3.5 my-3 text-stone-600 italic">{children}</blockquote>;
                             },
                             table({ children }) {
-                              return <div className="overflow-x-auto my-3 rounded-xl border border-zinc-800"><table className="w-full text-left text-xs font-sans">{children}</table></div>;
+                              return <div className="overflow-x-auto my-3 rounded-xl border border-[#E5E3DE]"><table className="w-full text-left text-xs font-sans">{children}</table></div>;
                             },
                             thead({ children }) {
-                              return <thead className="bg-zinc-900 border-b border-zinc-800 text-zinc-300 font-semibold">{children}</thead>;
+                              return <thead className="bg-[#F0EFEA] border-b border-[#E5E3DE] text-stone-700 font-semibold">{children}</thead>;
                             },
                             th({ children }) {
                               return <th className="px-3.5 py-2 font-medium">{children}</th>;
                             },
                             td({ children }) {
-                              return <td className="px-3.5 py-2 border-b border-zinc-800/60 text-zinc-300">{children}</td>;
+                              return <td className="px-3.5 py-2 border-b border-[#E5E3DE] text-stone-800">{children}</td>;
                             },
                             code({ node, inline, className, children, ...props }) {
                               const match = /language-(\w+)/.exec(className || '');
@@ -631,7 +631,7 @@ export default function ChatPane({
                               }
                               return (
                                 <code
-                                  className="bg-zinc-800 text-zinc-200 text-xs px-1.5 py-0.5 rounded font-mono font-medium border border-zinc-700"
+                                  className="bg-[#F0EFEA] text-[#1D1B1B] text-xs px-1.5 py-0.5 rounded font-mono font-medium border border-[#E5E3DE]"
                                   {...props}
                                 >
                                   {children}
@@ -660,17 +660,17 @@ export default function ChatPane({
 
                     {/* Assistant Message Actions (Hover to reveal) */}
                     {cleaned && !isStreaming && (
-                      <div className="flex items-center space-x-3 mt-2.5 pt-1 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center space-x-3 mt-2.5 pt-1 text-stone-400 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           type="button"
                           onClick={() => handleCopyAssistant(msg.id, cleaned)}
-                          className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-stone-900 transition cursor-pointer"
                           title="Copy text"
                         >
                           {copiedMessageId === msg.id ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                              <span className="text-emerald-400 font-medium">Copied</span>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-600 font-medium">Copied</span>
                             </>
                           ) : (
                             <>
@@ -682,7 +682,7 @@ export default function ChatPane({
                         <button
                           type="button"
                           onClick={() => handleRegenerate(idx)}
-                          className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                          className="flex items-center space-x-1.5 text-xs text-stone-500 hover:text-stone-900 transition cursor-pointer"
                           title="Retry from here"
                         >
                           <RotateCw className="w-3.5 h-3.5" />
@@ -698,8 +698,8 @@ export default function ChatPane({
         )}
 
         {isSaving && (
-          <div className="flex items-center space-x-2 text-xs text-zinc-400 italic px-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <div className="flex items-center space-x-2 text-xs text-stone-500 italic px-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
             <span>Saving to database...</span>
           </div>
         )}
@@ -707,15 +707,15 @@ export default function ChatPane({
         <div ref={messagesEndRef} className="h-6 shrink-0" />
       </div>
 
-      {/* Claude-style Luxury Floating Input Hub - shadcn Matte Dark */}
-      <footer className="p-4 bg-gradient-to-t from-[#09090b] via-[#09090b]/90 to-transparent">
+      {/* Claude-style Luxury Floating Input Hub - Warm Light Styling */}
+      <footer className="p-4 bg-gradient-to-t from-[#F9F9F8] via-[#F9F9F8]/90 to-transparent">
         <div className={`${isArtifactOpen ? 'max-w-2xl' : 'max-w-3xl'} mx-auto transition-all duration-300`}>
           {/* Main Input Box Card */}
-          <div className="relative rounded-2xl border border-zinc-800 bg-zinc-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.6)] focus-within:border-zinc-700 transition-all p-3 backdrop-blur-md">
+          <div className="relative rounded-2xl border border-[#E5E3DE] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] focus-within:border-stone-400 transition-all p-3 backdrop-blur-md">
             {/* Image Thumbnail Preview with X remove button */}
             {selectedImage && (
-              <div className="mb-2.5 relative inline-flex items-center gap-2.5 p-1.5 bg-zinc-850 border border-zinc-700 rounded-xl shadow-xs animate-in fade-in zoom-in-95 duration-150">
-                <div className="w-11 h-11 rounded-lg overflow-hidden bg-zinc-950 border border-zinc-700 shrink-0">
+              <div className="mb-2.5 relative inline-flex items-center gap-2.5 p-1.5 bg-[#F0EFEA] border border-[#E5E3DE] rounded-xl shadow-xs animate-in fade-in zoom-in-95 duration-150">
+                <div className="w-11 h-11 rounded-lg overflow-hidden bg-white border border-[#E5E3DE] shrink-0">
                   <img
                     src={selectedImage.previewUrl}
                     alt="Upload thumbnail"
@@ -723,17 +723,17 @@ export default function ChatPane({
                   />
                 </div>
                 <div className="flex flex-col text-left pr-6">
-                  <span className="text-xs font-semibold text-zinc-200 max-w-[180px] truncate">
+                  <span className="text-xs font-semibold text-stone-800 max-w-[180px] truncate">
                     {selectedImage.name}
                   </span>
-                  <span className="text-[10.5px] text-zinc-400 font-mono">
+                  <span className="text-[10.5px] text-stone-500 font-mono">
                     {selectedImage.size} • Vision Model
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedImage(null)}
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-zinc-700 text-zinc-200 hover:bg-zinc-600 rounded-full flex items-center justify-center shadow-xs transition cursor-pointer"
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-stone-300 text-stone-700 hover:bg-stone-400 rounded-full flex items-center justify-center shadow-xs transition cursor-pointer"
                   title="Remove image"
                 >
                   <X className="w-3 h-3" />
@@ -759,11 +759,11 @@ export default function ChatPane({
                   : 'Reply to NIM Studio...'
               }
               disabled={isStreaming || isSaving}
-              className="w-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none resize-none leading-relaxed min-h-[44px] max-h-[160px] px-1 py-1 font-sans"
+              className="w-full bg-transparent text-sm text-[#1D1B1B] placeholder-stone-400 focus:outline-none resize-none leading-relaxed min-h-[44px] max-h-[160px] px-1 py-1 font-sans"
             />
 
             {/* Input Bottom Action Bar */}
-            <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80 mt-1">
+            <div className="flex items-center justify-between pt-2 border-t border-[#E5E3DE] mt-1">
               <div ref={popoverContainerRef} className="flex items-center space-x-1.5 relative">
                 {/* Paperclip Icon for image file uploads */}
                 <button
@@ -775,8 +775,8 @@ export default function ChatPane({
                   title="Attach image for vision analysis"
                   className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                     selectedImage
-                      ? 'text-emerald-400 bg-emerald-500/20'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                      ? 'text-emerald-600 bg-emerald-50'
+                      : 'text-stone-500 hover:text-stone-900 hover:bg-[#F0EFEA]'
                   }`}
                 >
                   <Paperclip className="w-4 h-4" />
@@ -797,8 +797,8 @@ export default function ChatPane({
                     title="Tools & Capabilities"
                     className={`flex items-center space-x-1 p-1.5 rounded-lg transition-colors cursor-pointer text-xs ${
                       activeMenu === 'tools'
-                        ? 'bg-zinc-800 text-zinc-100'
-                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                        ? 'bg-[#F0EFEA] text-stone-900'
+                        : 'text-stone-500 hover:text-stone-900 hover:bg-[#F0EFEA]'
                     }`}
                   >
                     <Wrench className="w-4 h-4" />
@@ -806,42 +806,42 @@ export default function ChatPane({
 
                   {/* Tools Dropdown Popover */}
                   {activeMenu === 'tools' && (
-                    <div className="absolute left-0 bottom-full mb-2.5 w-64 bg-zinc-900/98 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.7)] p-2.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-                      <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-800 mb-2 text-[11px] font-semibold text-zinc-400 font-mono uppercase tracking-wider">
+                    <div className="absolute left-0 bottom-full mb-2.5 w-64 bg-white border border-[#E5E3DE] rounded-2xl shadow-xl p-2.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between px-2 py-1 border-b border-[#E5E3DE] mb-2 text-[11px] font-semibold text-stone-500 font-mono uppercase tracking-wider">
                         <span>Tools & Capabilities</span>
                         <button
                           type="button"
                           onClick={() => setActiveMenu(null)}
-                          className="text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                          className="text-stone-400 hover:text-stone-600 cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <div className="space-y-1.5">
-                        <div className="px-2.5 py-2 rounded-xl text-zinc-200 bg-zinc-800/90 border border-zinc-700/80 flex items-center justify-between shadow-xs">
+                        <div className="px-2.5 py-2 rounded-xl text-stone-900 bg-[#F0EFEA] border border-[#E5E3DE] flex items-center justify-between shadow-xs">
                           <div className="flex items-center space-x-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span className="font-semibold text-xs text-zinc-100">Code Interpreter</span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="font-semibold text-xs text-stone-900">Code Interpreter</span>
                           </div>
-                          <span className="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded font-semibold font-mono">
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold font-mono">
                             Active
                           </span>
                         </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-zinc-400 hover:bg-zinc-800/60 flex items-center justify-between">
+                        <div className="px-2.5 py-1.5 rounded-lg text-stone-500 hover:bg-[#F4F3EE] flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                            <span className="text-xs text-zinc-300">Web Search</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
+                            <span className="text-xs text-stone-700">Web Search</span>
                           </div>
-                          <span className="text-[10px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded font-mono border border-zinc-700/60">
+                          <span className="text-[10px] text-stone-500 bg-[#F0EFEA] px-1.5 py-0.5 rounded font-mono border border-[#E5E3DE]">
                             Soon
                           </span>
                         </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-zinc-400 hover:bg-zinc-800/60 flex items-center justify-between">
+                        <div className="px-2.5 py-1.5 rounded-lg text-stone-500 hover:bg-[#F4F3EE] flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                            <span className="text-xs text-zinc-300">File Context</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
+                            <span className="text-xs text-stone-700">File Context</span>
                           </div>
-                          <span className="text-[10px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded font-mono border border-zinc-700/60">
+                          <span className="text-[10px] text-stone-500 bg-[#F0EFEA] px-1.5 py-0.5 rounded font-mono border border-[#E5E3DE]">
                             Soon
                           </span>
                         </div>
@@ -857,21 +857,21 @@ export default function ChatPane({
                     onClick={() => setActiveMenu((prev) => (prev === 'mode' ? null : 'mode'))}
                     className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer border ${
                       activeMenu === 'mode'
-                        ? 'bg-zinc-750 text-white border-zinc-600 shadow-xs ring-1 ring-emerald-500/40'
-                        : 'bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 border-zinc-700/80'
+                        ? 'bg-[#F0EFEA] text-stone-900 border-[#E5E3DE] shadow-xs ring-1 ring-emerald-500/40'
+                        : 'bg-[#F0EFEA] hover:bg-[#E5E3DE] text-stone-700 border border-[#E5E3DE]'
                     }`}
                   >
-                    <Zap className="w-3 h-3 text-emerald-400" />
+                    <Zap className="w-3 h-3 text-emerald-600" />
                     <span>{currentModeObj.name}</span>
-                    <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform ${activeMenu === 'mode' ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-3 h-3 text-stone-500 transition-transform ${activeMenu === 'mode' ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Mode Dropdown Popover */}
                   {activeMenu === 'mode' && (
-                    <div className="absolute left-0 bottom-full mb-2.5 w-80 bg-zinc-900/98 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.7)] p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-                      <div className="flex items-center justify-between px-2.5 py-1.5 text-[11px] font-semibold text-zinc-400 font-mono uppercase tracking-wider border-b border-zinc-800 mb-1">
+                    <div className="absolute left-0 bottom-full mb-2.5 w-80 bg-white border border-[#E5E3DE] rounded-2xl shadow-xl p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between px-2.5 py-1.5 text-[11px] font-semibold text-stone-500 font-mono uppercase tracking-wider border-b border-[#E5E3DE] mb-1">
                         <span>Routing Strategy</span>
-                        <span className="text-[10px] text-zinc-500 font-normal">Cascade Tiers</span>
+                        <span className="text-[10px] text-stone-400 font-normal">Cascade Tiers</span>
                       </div>
                       <div className="space-y-1">
                         {modes.map((m) => {
@@ -886,26 +886,26 @@ export default function ChatPane({
                               }}
                               className={`w-full text-left p-2.5 rounded-xl transition cursor-pointer flex flex-col space-y-1 ${
                                 isSelected
-                                  ? 'bg-zinc-800/90 text-zinc-100 font-medium border border-zinc-700/80 shadow-xs'
-                                  : 'text-zinc-300 hover:bg-zinc-800/50 hover:text-zinc-100'
+                                  ? 'bg-[#F0EFEA] text-stone-900 font-medium border border-[#E5E3DE] shadow-xs'
+                                  : 'text-stone-700 hover:bg-[#F4F3EE] hover:text-stone-900'
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
-                                  <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-emerald-400' : 'bg-transparent'}`} />
-                                  <span className="text-xs font-semibold text-zinc-100">{m.name}</span>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-emerald-600' : 'bg-transparent'}`} />
+                                  <span className="text-xs font-semibold text-stone-900">{m.name}</span>
                                 </div>
                                 <span
                                   className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
                                     isSelected
-                                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
-                                      : 'bg-zinc-800 text-zinc-400 border border-zinc-700/60'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold'
+                                      : 'bg-[#F0EFEA] text-stone-500 border border-[#E5E3DE]'
                                   }`}
                                 >
                                   {m.badge}
                                 </span>
                               </div>
-                              <span className="text-[11.5px] text-zinc-400 font-normal pl-3.5 leading-normal">
+                              <span className="text-[11.5px] text-stone-500 font-normal pl-3.5 leading-normal">
                                 {m.description}
                               </span>
                             </button>
@@ -922,7 +922,7 @@ export default function ChatPane({
                 type="button"
                 onClick={handleSubmit}
                 disabled={(!input.trim() && !selectedImage) || isStreaming || isSaving}
-                className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
+                className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-stone-200 disabled:text-stone-400 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed active:scale-95"
                 title="Send message"
               >
                 <ArrowUp className="w-4 h-4 stroke-[2.5]" />
@@ -931,7 +931,7 @@ export default function ChatPane({
           </div>
 
           {/* Claude-style Disclaimer */}
-          <p className="text-[11px] text-zinc-500 text-center mt-2.5 tracking-tight font-sans">
+          <p className="text-[11px] text-stone-400 text-center mt-2.5 tracking-tight font-sans">
             NIM Studio can make mistakes. Check important info.
           </p>
         </div>

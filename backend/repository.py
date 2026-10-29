@@ -20,11 +20,12 @@ def create_conversation(
     session=None,
     title: Optional[str] = None,
     db=None,
+    conversation_id: Optional[str] = None,
 ) -> Conversation:
     """Creates a new conversation document in MongoDB."""
     target_db = get_target_db(session or db)
     now_iso = datetime.now(timezone.utc).isoformat()
-    conv_id = str(uuid.uuid4())
+    conv_id = (conversation_id.strip() if conversation_id and str(conversation_id).strip() else str(uuid.uuid4()))
     doc = {
         "_id": conv_id,
         "id": conv_id,

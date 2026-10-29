@@ -135,3 +135,79 @@ def test_router_state_endpoint(temp_db):
     first_tier1 = router.tiers["tier1"][0]
     assert first_tier1 in data
     assert "state" in data[first_tier1]
+
+
+def test_chat_missing_conversation_auto_creates_gracefully(temp_db):
+    """POST /api/chat with a non-existent conversation_id should auto-create and succeed without 404."""
+    session_factory = temp_db["session_factory"]
+
+    def _override_get_db():
+        db = session_factory()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = _override_get_db
+
+    import backend.main
+    from backend.provider import MockProvider
+
+    orig_session_local = backend.main.SessionLocal
+    orig_router_factory = router.session_factory
+    orig_provider = router.provider
+    orig_mock_provider = backend.main.mock_provider
+
+    if backend.main.mock_provider is None:
+        active_mock = MockProvider()
+        backend.main.mock_provider = active_mock
+        router.provider = active_mock
+    else:
+        active_mock = backend.main.mock_provider
+
+    backend.main.SessionLocal = session_factory
+    router.session_factory = session_factory
+
+    try:
+        client = TestClient(app)
+        non_existent_id = "fake-missing-uuid-12345"
+
+        response = client.post(
+            "/api/chat",
+            json={"message": "Test recovery", "conversation_id": non_existent_id},
+        )
+
+        assert response.status_code == 200
+        assert "data: " in response.text
+
+        # Verify SSE stream contains valid conversation_id and completion
+        lines = [line.strip() for line in response.text.split("\n") if line.startswith("data: ")]
+        assert len(lines) > 0
+
+        meta_chunk = None
+        for line in lines:
+            data = json.loads(line[6:])
+            if data.get("event") == "meta":
+                meta_chunk = data
+                break
+
+        assert meta_chunk is not None
+        assert meta_chunk["conversation_id"] == non_existent_id
+
+        # Verify conversation now exists in DB
+        with session_factory() as session:
+            conv = session.db.conversations.find_one({"id": non_existent_id})
+            assert conv is not None
+            assert conv["id"] == non_existent_id
+
+            # Verify messages were saved under this conversation
+            msgs = list(session.db.messages.find({"conversation_id": non_existent_id}))
+            assert len(msgs) >= 2  # user + assistant
+
+    finally:
+        app.dependency_overrides.clear()
+        backend.main.SessionLocal = orig_session_local
+        router.session_factory = orig_router_factory
+        router.provider = orig_provider
+        backend.main.mock_provider = orig_mock_provider
+

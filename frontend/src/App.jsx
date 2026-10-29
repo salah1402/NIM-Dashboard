@@ -51,28 +51,27 @@ export default function App() {
     setActiveArtifact(null);
   };
 
-  // Load conversation list and optionally select one
+  // Load conversation list and optionally select one; clears stale activeId if not in list
   const loadConversations = useCallback(async (selectId = null) => {
     try {
       setIsLoadingList(true);
       const list = await fetchConversations();
       setConversations(list);
 
-      if (list.length > 0) {
-        const targetId = selectId || activeId || list[0].id;
-        const exists = list.some((c) => c.id === targetId);
-        const finalId = exists ? targetId : list[0].id;
-        setActiveId(finalId);
-      } else {
-        setActiveId(null);
+      setActiveId((currentId) => {
+        const idToCheck = selectId !== null ? selectId : currentId;
+        if (idToCheck && list.some((c) => c.id === idToCheck)) {
+          return idToCheck;
+        }
         setMessages([]);
-      }
+        return null;
+      });
     } catch (err) {
       console.error('Failed to load conversations:', err);
     } finally {
       setIsLoadingList(false);
     }
-  }, [activeId]);
+  }, []);
 
   // Load messages whenever activeId changes
   useEffect(() => {
@@ -198,6 +197,9 @@ export default function App() {
         imageB64: imageToSend,
         mode,
         onMeta: (meta) => {
+          if (meta.conversation_id) {
+            setActiveId(meta.conversation_id);
+          }
           setMessages((prev) =>
             prev.map((m) =>
               m.id === asstMsgId
@@ -293,38 +295,38 @@ export default function App() {
   const activeConversation = conversations.find((c) => c.id === activeId);
 
   return (
-    <div className="flex flex-col h-screen bg-[#09090b] text-zinc-100 overflow-hidden font-sans">
-      {/* Top Header - shadcn Matte Dark Styling */}
-      <header className="border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md px-6 py-2.5 flex items-center justify-between z-20 shrink-0">
+    <div className="flex flex-col h-screen bg-[#F9F9F8] text-[#1D1B1B] overflow-hidden font-sans">
+      {/* Top Header - Claude Warm Light Styling */}
+      <header className="border-b border-[#E5E3DE] bg-[#F9F9F8]/90 backdrop-blur-md px-6 py-2.5 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center space-x-3.5">
-          <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-xs">
+          <div className="w-8 h-8 rounded-xl bg-white border border-[#E5E3DE] flex items-center justify-center shadow-xs">
             <ClaudeLogo className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-sm font-semibold tracking-tight text-zinc-100">NIM Studio</h1>
-              <span className="text-[10px] font-mono uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+              <h1 className="text-sm font-semibold tracking-tight text-[#1D1B1B]">NIM Studio</h1>
+              <span className="text-[10px] font-mono uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">
                 God Mode
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-sans tracking-tight">
+            <p className="text-[11px] text-stone-500 font-sans tracking-tight">
               Flagship Autonomous AI Agent & Cascade Router
             </p>
           </div>
         </div>
 
         {/* View Switcher Toggle */}
-        <div className="flex items-center bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 shadow-xs">
+        <div className="flex items-center bg-[#F0EFEA] p-1 rounded-xl border border-[#E5E3DE] shadow-xs">
           <button
             type="button"
             onClick={() => setView('chat')}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'chat'
-                ? 'bg-zinc-800 text-zinc-100 font-semibold shadow-xs'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+                ? 'bg-white text-[#1D1B1B] font-semibold shadow-xs'
+                : 'text-stone-600 hover:text-[#1D1B1B] hover:bg-white/50'
             }`}
           >
-            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
             <span>Chat & Agent</span>
           </button>
           <button
@@ -332,30 +334,30 @@ export default function App() {
             onClick={() => setView('dashboard')}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               view === 'dashboard'
-                ? 'bg-zinc-800 text-zinc-100 font-semibold shadow-xs'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+                ? 'bg-white text-[#1D1B1B] font-semibold shadow-xs'
+                : 'text-stone-600 hover:text-[#1D1B1B] hover:bg-white/50'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5 text-zinc-400" />
+            <BarChart3 className="w-3.5 h-3.5 text-stone-500" />
             <span>Analytics & DB</span>
           </button>
         </div>
 
         {/* Telemetry Status Badges */}
         <div className="flex items-center space-x-2.5 text-xs font-mono">
-          <div className="hidden sm:flex items-center space-x-1.5 bg-zinc-900/90 px-3 py-1.5 rounded-xl border border-zinc-800 text-zinc-300 shadow-xs">
-            <span className="text-zinc-500">Rate Limit:</span>
-            <span className="text-emerald-400 font-semibold">40 RPM / Slug</span>
+          <div className="hidden sm:flex items-center space-x-1.5 bg-white px-3 py-1.5 rounded-xl border border-[#E5E3DE] text-stone-700 shadow-xs">
+            <span className="text-stone-500">Rate Limit:</span>
+            <span className="text-emerald-700 font-semibold">40 RPM / Slug</span>
           </div>
-          <div className="flex items-center space-x-2 bg-zinc-900/90 px-3 py-1.5 rounded-xl border border-zinc-800 shadow-xs">
+          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-[#E5E3DE] shadow-xs">
             <span
               className={`w-2 h-2 rounded-full ${
                 backendHealth === 'connected'
-                  ? 'bg-emerald-400 animate-pulse'
+                  ? 'bg-emerald-500 animate-pulse'
                   : 'bg-rose-500'
               }`}
             />
-            <span className="text-zinc-300 font-medium">
+            <span className="text-stone-700 font-medium">
               API: {backendHealth === 'connected' ? '8000 OK' : backendHealth}
             </span>
           </div>
