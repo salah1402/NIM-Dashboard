@@ -18,6 +18,8 @@ import {
   Code,
   Layers,
   Zap,
+  Globe,
+  Search,
 } from 'lucide-react';
 
 const cleanContent = (content) => {
@@ -118,9 +120,39 @@ function CodeBlock({ language, value, onOpenArtifact }) {
   );
 }
 
+function parseWebSearchResults(resultText) {
+  if (!resultText) return [];
+  const entries = [];
+  const blocks = resultText.split(/\n\s*\n/);
+  for (const block of blocks) {
+    const lines = block.split('\n');
+    let title = '';
+    let url = '';
+    let snippet = '';
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (/^\d+\.\s*Title:\s*/i.test(line)) {
+        title = line.replace(/^\d+\.\s*Title:\s*/i, '').trim();
+      } else if (/^Title:\s*/i.test(line)) {
+        title = line.replace(/^Title:\s*/i, '').trim();
+      } else if (/^URL:\s*/i.test(line)) {
+        url = line.replace(/^URL:\s*/i, '').trim();
+      } else if (/^Snippet:\s*/i.test(line)) {
+        snippet = line.replace(/^Snippet:\s*/i, '').trim();
+      }
+    }
+    if (title || url) {
+      entries.push({ title: title || url, url, snippet });
+    }
+  }
+  return entries;
+}
+
 function ToolExecutionCard({ toolCall }) {
   const [copied, setCopied] = useState(false);
+  const toolName = toolCall.name || '';
   const code = toolCall.code || '';
+  const query = toolCall.query || '';
   const result = toolCall.result || '';
 
   const handleCopyCode = () => {
@@ -129,6 +161,85 @@ function ToolExecutionCard({ toolCall }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Render Web Search Card (Clean, light-themed Claude card)
+  if (toolName === 'web_search') {
+    const searchEntries = parseWebSearchResults(result);
+    return (
+      <div className="my-3 rounded-2xl border border-[#E5E3DE] bg-white text-stone-800 shadow-xs overflow-hidden not-prose w-full font-sans">
+        {/* Header */}
+        <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#F9F9F8] border-b border-[#E5E3DE]">
+          <div className="flex items-center space-x-2">
+            <div className="w-5 h-5 rounded-md bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+              <Globe className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-xs font-semibold text-stone-900">Web Search</span>
+            <span className="text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.2 rounded font-medium">
+              DuckDuckGo
+            </span>
+          </div>
+          <span className="text-[11px] text-stone-400 font-mono">
+            {searchEntries.length > 0 ? `${searchEntries.length} results` : 'Search query'}
+          </span>
+        </div>
+
+        {/* Search Query Pill */}
+        <div className="px-3.5 py-2 bg-[#F0EFEA]/50 border-b border-[#E5E3DE]/60 flex items-center space-x-2 text-xs">
+          <Search className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+          <span className="text-stone-500 font-medium">Query:</span>
+          <span className="font-mono text-stone-800 font-semibold truncate">
+            "{query || 'web search'}"
+          </span>
+        </div>
+
+        {/* Search Results List */}
+        <div className="p-3 space-y-2.5">
+          {searchEntries.length === 0 ? (
+            <div className="text-xs text-stone-500 font-mono italic px-1 py-1">
+              {result || 'Searching web...'}
+            </div>
+          ) : (
+            searchEntries.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-2.5 rounded-xl bg-[#F9F9F8] border border-[#E5E3DE] hover:border-stone-400 transition-colors text-left flex flex-col space-y-1"
+              >
+                <div className="flex items-center space-x-2 min-w-0">
+                  <Globe className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-stone-900 hover:text-emerald-700 hover:underline truncate"
+                      title={item.title}
+                    >
+                      {item.title}
+                    </a>
+                  ) : (
+                    <span className="text-xs font-semibold text-stone-900 truncate">
+                      {item.title}
+                    </span>
+                  )}
+                </div>
+                {item.url && (
+                  <span className="text-[10.5px] font-mono text-stone-400 truncate pl-5">
+                    {item.url}
+                  </span>
+                )}
+                {item.snippet && (
+                  <p className="text-[11px] text-stone-600 leading-relaxed pl-5 line-clamp-2">
+                    {item.snippet}
+                  </p>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Render Python Interpreter Card (macOS dark code block)
   return (
     <div className="my-3.5 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-md font-mono text-xs not-prose w-full">
       {/* Tool Header with Window Dots */}
@@ -827,13 +938,13 @@ export default function ChatPane({
                             Active
                           </span>
                         </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-stone-500 hover:bg-[#F4F3EE] flex items-center justify-between">
+                        <div className="px-2.5 py-2 rounded-xl text-stone-900 bg-[#F0EFEA] border border-[#E5E3DE] flex items-center justify-between shadow-xs">
                           <div className="flex items-center space-x-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
-                            <span className="text-xs text-stone-700">Web Search</span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="font-semibold text-xs text-stone-900">Web Search</span>
                           </div>
-                          <span className="text-[10px] text-stone-500 bg-[#F0EFEA] px-1.5 py-0.5 rounded font-mono border border-[#E5E3DE]">
-                            Soon
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold font-mono">
+                            Active
                           </span>
                         </div>
                         <div className="px-2.5 py-1.5 rounded-lg text-stone-500 hover:bg-[#F4F3EE] flex items-center justify-between">

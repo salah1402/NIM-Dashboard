@@ -23,7 +23,7 @@ from backend.config import (
 )
 from backend.discovery import discover_live_models, DiscoveryResult
 from backend import repository
-from backend.tools import PYTHON_TOOL_SCHEMA, execute_python
+from backend.tools import PYTHON_TOOL_SCHEMA, WEB_SEARCH_TOOL_SCHEMA, execute_python, web_search
 
 logger = logging.getLogger(__name__)
 
@@ -308,8 +308,8 @@ async def chat_endpoint(request: ChatRequest, db = Depends(get_db)):
                     else:
                         msg_history.append({"role": m.role, "content": m.content})
 
-                # Run cascade routing with python tool execution loop
-                tools_list = [PYTHON_TOOL_SCHEMA]
+                # Run cascade routing with python and web search tool execution loop
+                tools_list = [PYTHON_TOOL_SCHEMA, WEB_SEARCH_TOOL_SCHEMA]
                 total_latency_ms = 0
                 all_attempts = []
                 final_outcome = None
@@ -343,9 +343,12 @@ async def chat_endpoint(request: ChatRequest, db = Depends(get_db)):
                             except Exception:
                                 parsed_args = {}
                             code = parsed_args.get("code", "")
+                            query = parsed_args.get("query", "")
 
                             if fn_name == "execute_python":
                                 result = execute_python(code)
+                            elif fn_name == "web_search":
+                                result = web_search(query)
                             else:
                                 result = f"Unknown tool: {fn_name}"
 
@@ -354,6 +357,7 @@ async def chat_endpoint(request: ChatRequest, db = Depends(get_db)):
                                 "event": "tool_call",
                                 "name": fn_name,
                                 "code": code,
+                                "query": query,
                                 "result": result,
                             }
                             yield f"data: {json.dumps(tool_payload)}\n\n"
