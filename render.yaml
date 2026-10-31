@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: nim-dashboard-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.main:app --timeout 120
+    healthCheckPath: /health
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: USE_MOCK
+        value: "false"
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: MONGO_URI
+        sync: false
